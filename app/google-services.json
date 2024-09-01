@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "423976433427",
+    "project_id": "vpnfordummies-demo",
+    "storage_bucket": "vpnfordummies-demo.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:423976433427:android:87f7b4b2b83a71bb30cce6",
+        "android_client_info": {
+          "package_name": "com.asinosoft.vpn"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUsmT9qsUPfbbVvEB2WQ411l9sDZZzlNs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
