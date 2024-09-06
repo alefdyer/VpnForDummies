@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -56,18 +57,20 @@ class MainActivity : ComponentActivity() {
         remoteConfig.fetchAndActivate()
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    Toast.makeText(this, "Configuration fetched", Toast.LENGTH_SHORT).show()
+                    val keys = remoteConfig.getKeysByPrefix(AppConfig.PREF_CONNECTION_PREFIX)
+                    Log.d(AppConfig.TAG, "Config complete: $keys")
 
                     val connection: String = remoteConfig.all.filter { entry ->
-                        entry.key.startsWith("connection")
+                        entry.key.startsWith(AppConfig.PREF_CONNECTION_PREFIX)
                     }.values.random().asString()
 
                     val config = Uri.parse(connection)
-                    Log.d("", "Config: $config")
+                    Log.d(AppConfig.TAG, "Config: $config")
 
                     model.setConfig(config)
                 } else {
-                    Toast.makeText(this, "Fetch failed ${task.exception}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.config_error, task.exception), Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
     }
@@ -80,6 +83,7 @@ fun MainView(
     model: MainModel = viewModel()
 ) {
     val config by model.config.observeAsState()
+    val connectionName by model.connectionName.observeAsState(stringResource(id = R.string.wait_for_config))
     val isReady by model.isReady.observeAsState(false)
 
     var isRunning by remember { mutableStateOf(false) }
@@ -111,7 +115,7 @@ fun MainView(
         verticalArrangement = Arrangement.SpaceAround
     ) {
         Text(
-            text = if (isRunning) "ON" else "OFF",
+            text = connectionName,
             style = Typography.titleLarge
         )
 

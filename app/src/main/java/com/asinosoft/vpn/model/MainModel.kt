@@ -6,10 +6,12 @@ import androidx.lifecycle.ViewModel
 
 class MainModel : ViewModel() {
     val config = MutableLiveData<Uri>()
-    val isReady = MutableLiveData<Boolean>(false)
+    val connectionName = MutableLiveData<String>()
+    val isReady = MutableLiveData(false)
 
     fun setConfig(uri: Uri) {
         config.postValue(uri)
+        connectionName.postValue(uri.fragment)
         isReady.postValue(true)
     }
 }

@@ -333,7 +333,7 @@ object V2rayConfigUtil {
     }
 
     private fun trace(message: String): String {
-        Log.d("", message)
+        Log.d(AppConfig.TAG, message)
         return ""
     }
 }

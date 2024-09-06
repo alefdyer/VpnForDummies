@@ -3,12 +3,12 @@ package com.asinosoft.vpn
 import com.asinosoft.vpn.dto.SubnetAddress
 
 object AppConfig {
+    const val TAG = "VpnForDummies"
     const val PACKAGE = "com.asinosoft.vpn"
     const val HTTP_PORT = 10809
     const val SOCKS_PORT = 10808
     const val PREFER_IPV6 = false
     const val SESSION_NAME = "VPN"
-    const val LOCAL_DNS_PORT = 10853
 
     const val TAG_DIRECT = "direct"
     const val TAG_PROXY = "proxy"
@@ -17,7 +17,7 @@ object AppConfig {
     const val UPLINK = "uplink"
     const val DOWNLINK = "downlink"
 
-    const val PREF_CONNECTION_STRING = "connection_string"
+    const val PREF_CONNECTION_PREFIX = "connection"
 
     const val DELAY_TEST_URL = "https://www.gstatic.com/generate_204"
     const val DELAY_TEST_URL_2 = "https://www.google.com/generate_204"
@@ -37,7 +37,6 @@ object AppConfig {
     /** Broadcast actions. */
     const val BROADCAST_ACTION_SERVICE = "com.asinosoft.vpn.action.service"
     const val BROADCAST_ACTION_ACTIVITY = "com.asinosoft.vpn.action.activity"
-    const val BROADCAST_ACTION_WIDGET_CLICK = "com.asinosoft.vpn.action.widget.click"
 
     /** Protocols Scheme **/
     const val VMESS = "vmess"
@@ -47,6 +46,14 @@ object AppConfig {
     const val VLESS = "vless"
     const val TROJAN = "trojan"
     const val WIREGUARD = "wireguard"
+
+    val ALLOWED_APPS = arrayOf(
+        "com.google.android.youtube",
+        "com.google.android.youtube.tv",
+        "com.google.android.youtube.tvkids",
+        "com.google.android.apps.youtube.kids",
+        "com.google.android.apps.youtube.music",
+    )
 
     val BYPASS_IP_ADDRESSES = arrayOf(
         SubnetAddress("0.0.0.0", 5),

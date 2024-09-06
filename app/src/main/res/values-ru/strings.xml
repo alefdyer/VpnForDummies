@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VpnForDummies</string>
+    <string name="stop">Остановить</string>
+    <string name="connection_test_pending">Проверить соединение</string>
+    <string name="connection_test_testing">Проверка…</string>
+    <string name="connection_test_available">Успешно: http-соединение за %dms</string>
+    <string name="connection_test_error">Нет соединения: %s</string>
+    <string name="connection_test_fail">Отсутствует Интернет</string>
+    <string name="connection_test_error_status_code">Ошибка: #%d</string>
+    <string name="connection_connected">Соединено. Кликните для проверки соединения</string>
+    <string name="connection_not_connected">Не соединено</string>
+    <string name="wait_for_config">Ожидание конфигурации</string>
+    <string name="config_error">Ошибка конфигурации: %s</string>
+</resources>

@@ -75,7 +75,7 @@ object ServiceManager {
 
     fun startV2Ray(context: Context, config: Uri) {
         if (v2rayPoint.isRunning) {
-            Log.d("", "VNP service already running")
+            Log.d(AppConfig.TAG, "VNP service already running")
             return
         }
 
@@ -172,7 +172,7 @@ object ServiceManager {
         v2rayPoint.domainName = config.getV2rayPointDomainAndPort()
         currentConfig = config
 
-        Log.d("Config", v2rayPoint.configureFileContent)
+        Log.d(AppConfig.TAG, "Connect to ${v2rayPoint.configureFileContent}")
 
         try {
             v2rayPoint.runLoop(false)
@@ -385,12 +385,6 @@ object ServiceManager {
         return mNotificationManager
     }
 
-    private fun startSpeedNotification() {
-    }
-
-    private fun stopSpeedNotification() {
-    }
-
     private fun ping(outboundTags: List<String>) {
         val queryTime = System.currentTimeMillis()
         val sinceLastQueryInSeconds = (queryTime - lastQueryTime) / 1000.0
@@ -436,7 +430,7 @@ object ServiceManager {
         text.append("•  ${up.toLong().toSpeedString()}↑  ${down.toLong().toSpeedString()}↓\n")
     }
 
-    private fun trace(message: String): Unit {
-        Log.d("", message)
+    private fun trace(message: String) {
+        Log.d(AppConfig.TAG, message)
     }
 }

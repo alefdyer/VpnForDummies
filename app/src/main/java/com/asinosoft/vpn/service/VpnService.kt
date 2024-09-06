@@ -21,9 +21,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 import java.lang.ref.SoftReference
+import kotlin.concurrent.thread
 import android.net.VpnService as AndroidVpnService
 
-class VpnService: AndroidVpnService(), ServiceControl {
+class VpnService : AndroidVpnService(), ServiceControl {
     companion object {
         private const val VPN_MTU = 1500
         private const val PRIVATE_VLAN4_CLIENT = "26.26.26.1"
@@ -63,7 +64,10 @@ class VpnService: AndroidVpnService(), ServiceControl {
                 setUnderlyingNetworks(arrayOf(network))
             }
 
-            override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+            override fun onCapabilitiesChanged(
+                network: Network,
+                networkCapabilities: NetworkCapabilities
+            ) {
                 // it's a good idea to refresh capabilities
                 setUnderlyingNetworks(arrayOf(network))
             }
@@ -127,6 +131,10 @@ class VpnService: AndroidVpnService(), ServiceControl {
 
         builder.setSession(AppConfig.SESSION_NAME)
 
+        AppConfig.ALLOWED_APPS.forEach {
+            builder.addAllowedApplication(it)
+        }
+
         // Close the old interface since the parameters have been changed.
         try {
             mInterface.close()
@@ -174,7 +182,7 @@ class VpnService: AndroidVpnService(), ServiceControl {
             cmd.add(PRIVATE_VLAN6_ROUTER)
         }
 
-        Log.d(packageName, cmd.toString())
+        Log.d(AppConfig.TAG, cmd.toString())
 
         try {
             val proBuilder = ProcessBuilder(cmd)
@@ -182,41 +190,46 @@ class VpnService: AndroidVpnService(), ServiceControl {
             process = proBuilder
                 .directory(applicationContext.filesDir)
                 .start()
-            Thread(Runnable {
-                Log.d(packageName, "$TUN2SOCKS check")
+            thread {
+                Log.d(AppConfig.TAG, "$TUN2SOCKS check")
                 process.waitFor()
-                Log.d(packageName, "$TUN2SOCKS exited")
+                Log.d(AppConfig.TAG, "$TUN2SOCKS exited")
                 if (isRunning) {
-                    Log.d(packageName, "$TUN2SOCKS restart")
+                    Log.d(AppConfig.TAG, "$TUN2SOCKS restart")
                     runTun2socks()
                 }
-            }).start()
-            Log.d(packageName, process.toString())
+            }
+            Log.d(AppConfig.TAG, process.toString())
 
             sendFd()
         } catch (e: Exception) {
-            Log.d(packageName, e.toString())
+            Log.d(AppConfig.TAG, e.toString())
         }
     }
 
     private fun sendFd() {
         val fd = mInterface.fileDescriptor
         val path = File(applicationContext.filesDir, "sock_path").absolutePath
-        Log.d(packageName, path)
+        Log.d(AppConfig.TAG, path)
 
         CoroutineScope(Dispatchers.IO).launch {
             var tries = 0
             while (true) try {
                 Thread.sleep(50L shl tries)
-                Log.d(packageName, "sendFd tries: $tries")
+                Log.d(AppConfig.TAG, "sendFd tries: $tries")
                 LocalSocket().use { localSocket ->
-                    localSocket.connect(LocalSocketAddress(path, LocalSocketAddress.Namespace.FILESYSTEM))
+                    localSocket.connect(
+                        LocalSocketAddress(
+                            path,
+                            LocalSocketAddress.Namespace.FILESYSTEM
+                        )
+                    )
                     localSocket.setFileDescriptorsForSend(arrayOf(fd))
                     localSocket.outputStream.write(42)
                 }
                 break
             } catch (e: Exception) {
-                Log.d(packageName, e.toString())
+                Log.d(AppConfig.TAG, e.toString())
                 if (tries > 5) break
                 tries += 1
             }
@@ -239,10 +252,10 @@ class VpnService: AndroidVpnService(), ServiceControl {
         }
 
         try {
-            Log.d(packageName, "tun2socks destroy")
+            Log.d(AppConfig.TAG, "tun2socks destroy")
             process.destroy()
         } catch (e: Exception) {
-            Log.d(packageName, e.toString())
+            Log.d(AppConfig.TAG, e.toString())
         }
 
         ServiceManager.stopV2rayPoint()

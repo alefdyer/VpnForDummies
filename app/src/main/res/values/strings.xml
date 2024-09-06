@@ -11,4 +11,6 @@
     <string name="connection_test_error_status_code">Error code: #%d</string>
     <string name="connection_connected">Connected, tap to check connection</string>
     <string name="connection_not_connected">Not connected</string>
+    <string name="wait_for_config" >Wait for configuration</string>
+    <string name="config_error" >Configuration error: %s</string>
 </resources>
