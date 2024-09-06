@@ -90,7 +90,6 @@ object ServiceManager {
     }
 
     fun stopV2Ray(context: Context) {
-        Toast.makeText(context, R.string.stop, Toast.LENGTH_SHORT).show()
         MessageUtil.sendMsg2Service(context, AppConfig.MSG_STATE_STOP, "")
     }
 

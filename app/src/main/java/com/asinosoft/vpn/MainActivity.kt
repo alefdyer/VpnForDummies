@@ -43,6 +43,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        model.startListenBroadcast()
 
         setContent {
             VpnForDummiesTheme {
@@ -69,7 +70,11 @@ class MainActivity : ComponentActivity() {
 
                     model.setConfig(config)
                 } else {
-                    Toast.makeText(this, getString(R.string.config_error, task.exception), Toast.LENGTH_SHORT)
+                    Toast.makeText(
+                        this,
+                        getString(R.string.config_error, task.exception),
+                        Toast.LENGTH_SHORT
+                    )
                         .show()
                 }
             }
@@ -85,13 +90,8 @@ fun MainView(
     val config by model.config.observeAsState()
     val connectionName by model.connectionName.observeAsState(stringResource(id = R.string.wait_for_config))
     val isReady by model.isReady.observeAsState(false)
-
-    var isRunning by remember { mutableStateOf(false) }
+    val switchPosition by model.switchPosition.observeAsState(false)
     val context = LocalContext.current
-
-    val startV2Ray = { ServiceManager.startV2Ray(context, model.config.value!!) }
-
-    val stopV2Ray = { ServiceManager.stopV2Ray(context) }
 
     val requestVpnPermission =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -103,7 +103,7 @@ fun MainView(
     val checkPermissionAndStartV2Ray = {
         val intent = VpnService.prepare(context)
         if (intent == null) {
-            startV2Ray()
+            model.startVpn()
         } else {
             requestVpnPermission.launch(intent)
         }
@@ -120,13 +120,14 @@ fun MainView(
         )
 
         Switch(
-            checked = isRunning,
+            checked = switchPosition,
             enabled = isReady,
             onCheckedChange = {
-                isRunning = it
-
-                if (isRunning) checkPermissionAndStartV2Ray()
-                else stopV2Ray()
+                if (it) {
+                    checkPermissionAndStartV2Ray()
+                } else {
+                    model.stopVpn()
+                }
             }
         )
     }

@@ -1,10 +1,8 @@
 package com.asinosoft.vpn.util
 
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import com.asinosoft.vpn.AppConfig
-import com.asinosoft.vpn.service.TestService
 import java.io.Serializable
 
 
@@ -16,18 +14,6 @@ object MessageUtil {
 
     fun sendMsg2UI(ctx: Context, what: Int, content: Serializable) {
         sendMsg(ctx, AppConfig.BROADCAST_ACTION_ACTIVITY, what, content)
-    }
-
-    fun sendMsg2TestService(ctx: Context, what: Int, content: Serializable) {
-        try {
-            val intent = Intent()
-            intent.component = ComponentName(ctx, TestService::class.java)
-            intent.putExtra("key", what)
-            intent.putExtra("content", content)
-            ctx.startService(intent)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
     }
 
     private fun sendMsg(ctx: Context, action: String, what: Int, content: Serializable) {
