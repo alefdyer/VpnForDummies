@@ -16,6 +16,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import com.asinosoft.vpn.AppConfig
 import com.asinosoft.vpn.dto.ERoutingMode
+import com.asinosoft.vpn.util.MessageUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -146,7 +147,7 @@ class VpnService : AndroidVpnService(), ServiceControl {
             try {
                 connectivity.requestNetwork(defaultNetworkRequest, defaultNetworkCallback)
             } catch (e: Exception) {
-                e.printStackTrace()
+                MessageUtil.sendMsg2Service(this, AppConfig.MSG_ERROR_MESSAGE, e.message ?: "")
             }
         }
 
@@ -160,7 +161,7 @@ class VpnService : AndroidVpnService(), ServiceControl {
             isRunning = true
             runTun2socks()
         } catch (e: Exception) {
-            e.printStackTrace()
+            MessageUtil.sendMsg2Service(this, AppConfig.MSG_ERROR_MESSAGE, e.message ?: "")
             stopV2Ray()
         }
     }
@@ -203,7 +204,7 @@ class VpnService : AndroidVpnService(), ServiceControl {
 
             sendFd()
         } catch (e: Exception) {
-            Log.d(AppConfig.TAG, e.toString())
+            MessageUtil.sendMsg2Service(this, AppConfig.MSG_ERROR_MESSAGE, e.message ?: "")
         }
     }
 
@@ -229,7 +230,7 @@ class VpnService : AndroidVpnService(), ServiceControl {
                 }
                 break
             } catch (e: Exception) {
-                Log.d(AppConfig.TAG, e.toString())
+                MessageUtil.sendMsg2Service(this@VpnService, AppConfig.MSG_ERROR_MESSAGE, e.message ?: "")
                 if (tries > 5) break
                 tries += 1
             }

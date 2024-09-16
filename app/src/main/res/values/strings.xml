@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">VpnForDummies</string>
+    <string name="app_name">YouTube Accelerator</string>
     <string name="stop">Stop</string>
     <string name="started">Started</string>
     <string name="stopped">Stopped</string>
@@ -11,4 +11,12 @@
     <string name="connection_test_error_status_code">Error code: #%d</string>
     <string name="wait_for_config" >Wait for configuration</string>
     <string name="config_error" >Configuration error: %s</string>
+    <string name="device_not_supported">This device doesn\'t support VPN</string>
+    <string name="ready_to_start">Ready to start</string>
+    <string name="starting">Starting…</string>
+    <string name="stopping">Stopping…</string>
+    <string name="settings">Settings</string>
+    <string name="licenses">Licenses</string>
+    <string name="private_policy">Private policy</string>
+    <string name="rate_us">Rate Us</string>
 </resources>

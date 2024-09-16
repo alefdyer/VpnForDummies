@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">VpnForDummies</string>
+    <string name="app_name">Ускоритель Ютуба</string>
     <string name="stop">Остановить</string>
     <string name="started">VPN включён</string>
     <string name="stopped">VPN отключён</string>
@@ -12,4 +12,12 @@
     <string name="connection_test_error_status_code">Ошибка: #%d</string>
     <string name="wait_for_config">Ожидание конфигурации</string>
     <string name="config_error">Ошибка конфигурации: %s</string>
+    <string name="device_not_supported">Это устройство не поддерживает VPN</string>
+    <string name="ready_to_start">Готов к запуску</string>
+    <string name="starting">Запуск…</string>
+    <string name="stopping">Останов…</string>
+    <string name="settings">Настройки</string>
+    <string name="licenses">Лицензии третьих сторон</string>
+    <string name="private_policy">Политика конфиденциальности</string>
+    <string name="rate_us">Оценить нас</string>
 </resources>

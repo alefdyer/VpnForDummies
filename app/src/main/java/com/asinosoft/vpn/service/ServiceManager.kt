@@ -1,5 +1,6 @@
 package com.asinosoft.vpn.service
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -13,7 +14,6 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.util.Log
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.asinosoft.vpn.AppConfig
@@ -143,6 +143,7 @@ object ServiceManager {
             else -> null
         }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     fun startV2rayPoint(uri: Uri) {
         val service =
             serviceControl?.get()?.getService() ?: return trace("VPN service yet not started")
