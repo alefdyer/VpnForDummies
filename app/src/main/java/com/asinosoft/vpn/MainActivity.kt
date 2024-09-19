@@ -15,6 +15,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +29,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +37,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
@@ -140,6 +144,11 @@ fun MainView(
             showInfo = null
         }
     } else {
+        val focusRequester = remember { FocusRequester() }
+        LaunchedEffect(focusRequester) {
+            focusRequester.requestFocus()
+        }
+
         Column(
             modifier = modifier.fillMaxSize()
         ) {
@@ -189,13 +198,19 @@ fun MainView(
 
                 error?.let { Text(text = it) }
 
-                Switch(checked = switchPosition, enabled = isReady, onCheckedChange = {
-                    if (it) {
-                        checkPermissionAndStartV2Ray()
-                    } else {
-                        model.stopVpn()
-                    }
-                })
+                Switch(
+                    modifier = Modifier
+                        .focusRequester(focusRequester)
+                        .focusable(),
+                    checked = switchPosition,
+                    enabled = isReady,
+                    onCheckedChange = {
+                        if (it) {
+                            checkPermissionAndStartV2Ray()
+                        } else {
+                            model.stopVpn()
+                        }
+                    })
             }
         }
     }
