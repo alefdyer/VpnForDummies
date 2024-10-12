@@ -10,9 +10,9 @@ android {
 
     defaultConfig {
         applicationId = "com.asinosoft.vpn"
-        minSdk = 21
+        minSdk = 24
         targetSdk = 34
-        versionCode = 1
+        versionCode = 3
         versionName = "1.0"
         vectorDrawables {
             useSupportLibrary = true
@@ -64,6 +64,9 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+        jniLibs {
+            useLegacyPackaging = true
+        }
     }
 }
 
@@ -85,6 +88,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.material3)
+    implementation(libs.material)
+    implementation(libs.androidx.activity)
+    implementation(libs.mobileads)
+    implementation(libs.lottie)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)

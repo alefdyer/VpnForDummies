@@ -4,6 +4,8 @@ build/
 
 local.properties
 /app/libs/libv2ray.aar
+/app/debug
+/app/release
 
 # Log/OS Files
 *.log

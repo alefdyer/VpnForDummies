@@ -67,14 +67,14 @@ data class ServerConfig(
         return fullConfig?.getProxyOutbound()
     }
 
-    fun getAllOutboundTags(): MutableList<String> {
+    fun getAllOutboundTags(): List<String> {
         if (configType != EConfigType.CUSTOM) {
-            return mutableListOf("proxy", "direct", "block")
+            return listOf("proxy", "direct", "block")
         }
         fullConfig?.let { config ->
-            return config.outbounds.map { it.tag }.toMutableList()
+            return config.outbounds.map { it.tag }
         }
-        return mutableListOf()
+        return listOf()
     }
 
     fun getV2rayPointDomainAndPort(): String {

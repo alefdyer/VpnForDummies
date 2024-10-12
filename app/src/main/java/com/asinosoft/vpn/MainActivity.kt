@@ -3,12 +3,9 @@ package com.asinosoft.vpn
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.net.Uri
 import android.net.VpnService
 import android.os.Bundle
-import android.util.Log
 import android.webkit.WebView
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -50,47 +47,20 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.Switch
 import androidx.tv.material3.Text
 import com.asinosoft.vpn.model.MainModel
-import com.asinosoft.vpn.service.ServiceManager
 import com.asinosoft.vpn.ui.theme.Typography
 import com.asinosoft.vpn.ui.theme.VpnForDummiesTheme
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.remoteconfig.ktx.remoteConfig
 
 class MainActivity : ComponentActivity() {
-    private val remoteConfig = Firebase.remoteConfig
     private val model: MainModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         model.startListenBroadcast()
+        model.retrieveConfig(this)
 
         setContent {
             VpnForDummiesTheme {
                 MainView()
-            }
-        }
-
-        retrieveConfig()
-    }
-
-    private fun retrieveConfig() {
-        remoteConfig.fetchAndActivate().addOnCompleteListener(this) { task ->
-            if (task.isSuccessful) {
-                val keys = remoteConfig.getKeysByPrefix(AppConfig.PREF_CONNECTION_PREFIX)
-                Log.d(AppConfig.TAG, "Config complete: $keys")
-
-                val connection: String = remoteConfig.all.filter { entry ->
-                    entry.key.startsWith(AppConfig.PREF_CONNECTION_PREFIX)
-                }.values.random().asString()
-
-                val config = Uri.parse(connection)
-                Log.d(AppConfig.TAG, "Config: $config")
-
-                model.setConfig(config)
-            } else {
-                Toast.makeText(
-                    this, getString(R.string.config_error, task.exception), Toast.LENGTH_SHORT
-                ).show()
             }
         }
     }
@@ -103,7 +73,6 @@ fun MainView(
 ) {
     var showInfo by remember { mutableStateOf<String?>(null) }
     var showMenu by remember { mutableStateOf(false) }
-    val config by model.config.observeAsState()
     val connectionName by model.connectionName.observeAsState(stringResource(id = R.string.wait_for_config))
     val isReady by model.isReady.observeAsState(false)
     val switchPosition by model.switchPosition.observeAsState(false)
@@ -114,7 +83,7 @@ fun MainView(
     val requestVpnPermission =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
-                ServiceManager.startV2Ray(context, config!!)
+                model.startVpn()
             }
         }
 

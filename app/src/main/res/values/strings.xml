@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">YouTube Accelerator</string>
     <string name="stop">Stop</string>
@@ -9,8 +10,8 @@
     <string name="connection_test_error">Fail to detect internet connection: %s</string>
     <string name="connection_test_fail">Internet Unavailable</string>
     <string name="connection_test_error_status_code">Error code: #%d</string>
-    <string name="wait_for_config" >Wait for configuration</string>
-    <string name="config_error" >Configuration error: %s</string>
+    <string name="wait_for_config">Wait for configuration</string>
+    <string name="config_error">Configuration error: %s</string>
     <string name="device_not_supported">This device doesn\'t support VPN</string>
     <string name="ready_to_start">Ready to start</string>
     <string name="starting">Starting…</string>

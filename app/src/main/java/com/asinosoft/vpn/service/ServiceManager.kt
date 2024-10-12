@@ -37,6 +37,9 @@ import libv2ray.Libv2ray
 import libv2ray.V2RayPoint
 import libv2ray.V2RayVPNServiceSupportsSet
 import java.lang.ref.SoftReference
+import java.util.Timer
+import java.util.TimerTask
+import java.util.concurrent.TimeUnit
 import kotlin.math.min
 
 object ServiceManager {
@@ -58,10 +61,12 @@ object ServiceManager {
                 Utils.getDeviceIdForXUDPBaseKey()
             )
         }
+    private var configUri: Uri? = null
     private var currentConfig: ServerConfig? = null
     private var lastQueryTime = 0L
     private var lastZeroSpeed = false
     private var mNotificationManager: NotificationManager? = null
+    private var measureSpeedTimer: Timer? = null
 
     private val channelId by lazy {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -126,6 +131,7 @@ object ServiceManager {
             //Logger.d(s)
             return try {
                 serviceControl.startService()
+                startSpeedNotification()
                 0
             } catch (e: Exception) {
                 Log.d(AppConfig.PACKAGE, e.toString())
@@ -152,6 +158,9 @@ object ServiceManager {
 
         val config = parseConfig(uri) ?: return trace("Can't parse config: $uri")
 
+        configUri = uri
+        currentConfig = config
+
         try {
             val mFilter = IntentFilter(AppConfig.BROADCAST_ACTION_SERVICE)
             mFilter.addAction(Intent.ACTION_SCREEN_ON)
@@ -170,7 +179,6 @@ object ServiceManager {
         v2rayPoint.configureFileContent =
             V2rayConfigUtil.getV2rayConfig(service, outbound, config.remarks)
         v2rayPoint.domainName = config.getV2rayPointDomainAndPort()
-        currentConfig = config
 
         Log.d(AppConfig.TAG, "Connect to ${v2rayPoint.configureFileContent}")
 
@@ -217,12 +225,11 @@ object ServiceManager {
             val serviceControl = serviceControl?.get() ?: return
             when (intent?.getIntExtra("key", 0)) {
                 AppConfig.MSG_REGISTER_CLIENT -> {
-                    //Logger.e("ReceiveMessageHandler", intent?.getIntExtra("key", 0).toString())
                     if (v2rayPoint.isRunning) {
                         MessageUtil.sendMsg2UI(
                             serviceControl.getService(),
                             AppConfig.MSG_STATE_RUNNING,
-                            ""
+                            "$configUri"
                         )
                     } else {
                         MessageUtil.sendMsg2UI(
@@ -383,6 +390,18 @@ object ServiceManager {
                 service.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         }
         return mNotificationManager
+    }
+
+    private fun startSpeedNotification() {
+        val outbounds = currentConfig?.getAllOutboundTags() ?: return
+
+        val measureSpeed = object : TimerTask() {
+            override fun run() = ping(outbounds)
+        }
+
+        measureSpeedTimer = Timer().apply {
+            schedule(measureSpeed, 0L, TimeUnit.SECONDS.toMillis(5))
+        }
     }
 
     private fun ping(outboundTags: List<String>) {

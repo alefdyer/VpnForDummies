@@ -9,7 +9,9 @@ import android.net.LocalSocketAddress
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.net.Uri
 import android.os.Build
+import android.os.Handler
 import android.os.ParcelFileDescriptor
 import android.os.StrictMode
 import android.util.Log
@@ -22,6 +24,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 import java.lang.ref.SoftReference
+import java.util.Timer
+import java.util.TimerTask
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 import android.net.VpnService as AndroidVpnService
 
@@ -32,12 +37,20 @@ class VpnService : AndroidVpnService(), ServiceControl {
         private const val PRIVATE_VLAN4_ROUTER = "26.26.26.2"
         private const val PRIVATE_VLAN6_CLIENT = "da26:2626::1"
         private const val PRIVATE_VLAN6_ROUTER = "da26:2626::2"
-        private const val TUN2SOCKS = "libtun2socks.so"
     }
 
+    private lateinit var config: Uri
     private var isRunning = false
     private lateinit var mInterface: ParcelFileDescriptor
     private lateinit var process: Process
+
+    private var breakForAdsTimer: Timer? = null
+    private val breakForAds = object : TimerTask() {
+        override fun run() {
+            Log.w(AppConfig.TAG, "Break for Ads")
+            stopService()
+        }
+    }
 
     /**destroy
      * Unfortunately registerDefaultNetworkCallback is going to return our VPN interface: https://android.googlesource.com/platform/frameworks/base/+/dda156ab0c5d66ad82bdcf76cda07cbc0a9c8a2e
@@ -50,10 +63,8 @@ class VpnService : AndroidVpnService(), ServiceControl {
      */
     @delegate:RequiresApi(Build.VERSION_CODES.P)
     private val defaultNetworkRequest by lazy {
-        NetworkRequest.Builder()
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED)
-            .build()
+        NetworkRequest.Builder().addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED).build()
     }
 
     private val connectivity by lazy { getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager }
@@ -66,8 +77,7 @@ class VpnService : AndroidVpnService(), ServiceControl {
             }
 
             override fun onCapabilitiesChanged(
-                network: Network,
-                networkCapabilities: NetworkCapabilities
+                network: Network, networkCapabilities: NetworkCapabilities
             ) {
                 // it's a good idea to refresh capabilities
                 setUnderlyingNetworks(arrayOf(network))
@@ -160,6 +170,7 @@ class VpnService : AndroidVpnService(), ServiceControl {
             mInterface = builder.establish()!!
             isRunning = true
             runTun2socks()
+            scheduleBreakForAds()
         } catch (e: Exception) {
             MessageUtil.sendMsg2Service(this, AppConfig.MSG_ERROR_MESSAGE, e.message ?: "")
             stopV2Ray()
@@ -167,8 +178,17 @@ class VpnService : AndroidVpnService(), ServiceControl {
     }
 
     private fun runTun2socks() {
-        val cmd = arrayListOf(
-            File(applicationContext.applicationInfo.nativeLibraryDir, TUN2SOCKS).absolutePath,
+        val tun2socks = File(
+            applicationContext.applicationInfo.nativeLibraryDir,
+            System.mapLibraryName("tun2socks")
+        )
+
+        if (!tun2socks.canExecute()) {
+            throw Exception("$tun2socks is not executable!")
+        }
+
+        val cmd: MutableList<String> = arrayListOf(
+            tun2socks.absolutePath,
             "--netif-ipaddr", PRIVATE_VLAN4_ROUTER,
             "--netif-netmask", "255.255.255.252",
             "--socks-server-addr", "127.0.0.1:${AppConfig.SOCKS_PORT}",
@@ -186,24 +206,26 @@ class VpnService : AndroidVpnService(), ServiceControl {
         Log.d(AppConfig.TAG, cmd.toString())
 
         try {
-            val proBuilder = ProcessBuilder(cmd)
-            proBuilder.redirectErrorStream(true)
-            process = proBuilder
-                .directory(applicationContext.filesDir)
-                .start()
+            process =
+                ProcessBuilder(cmd).redirectErrorStream(true).directory(applicationContext.filesDir)
+                    .start()
+
             thread {
-                Log.d(AppConfig.TAG, "$TUN2SOCKS check")
-                process.waitFor()
-                Log.d(AppConfig.TAG, "$TUN2SOCKS exited")
+                Log.d(AppConfig.TAG, "tun2socks check")
+                val result = process.waitFor()
+                Log.d(AppConfig.TAG, "tun2socks exited with $result")
+
                 if (isRunning) {
-                    Log.d(AppConfig.TAG, "$TUN2SOCKS restart")
-                    runTun2socks()
+                    Log.d(AppConfig.TAG, "tun2socks restart")
+                    Handler(mainLooper).postDelayed({
+                        runTun2socks()
+                    }, 100)
                 }
             }
-            Log.d(AppConfig.TAG, process.toString())
 
             sendFd()
         } catch (e: Exception) {
+            Log.e(AppConfig.TAG, e.toString())
             MessageUtil.sendMsg2Service(this, AppConfig.MSG_ERROR_MESSAGE, e.message ?: "")
         }
     }
@@ -230,15 +252,26 @@ class VpnService : AndroidVpnService(), ServiceControl {
                 }
                 break
             } catch (e: Exception) {
-                MessageUtil.sendMsg2Service(this@VpnService, AppConfig.MSG_ERROR_MESSAGE, e.message ?: "")
+                MessageUtil.sendMsg2Service(
+                    this@VpnService,
+                    AppConfig.MSG_ERROR_MESSAGE,
+                    e.message ?: ""
+                )
                 if (tries > 5) break
                 tries += 1
             }
         }
     }
 
+    private fun scheduleBreakForAds() {
+        breakForAdsTimer = Timer().apply {
+            schedule(breakForAds, TimeUnit.SECONDS.toMillis(30))
+        }
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        ServiceManager.startV2rayPoint(intent?.data!!)
+        config = intent?.data!!
+        ServiceManager.startV2rayPoint(config)
         return START_STICKY
     }
 
@@ -260,6 +293,8 @@ class VpnService : AndroidVpnService(), ServiceControl {
         }
 
         ServiceManager.stopV2rayPoint()
+
+        breakForAdsTimer?.cancel()
 
         if (isForced) {
             //stopSelf has to be called ahead of mInterface.close(). otherwise v2ray core cannot be stooped
