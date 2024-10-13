@@ -23,7 +23,9 @@ import com.google.firebase.remoteconfig.ktx.remoteConfig
 
 class MainModel(private val application: Application) : AndroidViewModel(application) {
     private val remoteConfig = Firebase.remoteConfig
-    val config = MutableLiveData<Uri>()
+    private var config: Uri? = null
+    private var adsInterval: Long = AppConfig.DEFAULT_ADS_INTERVAL
+
     val connectionName = MutableLiveData<String>()
     val isReady = MutableLiveData(false)
     val isRunning = MutableLiveData(false)
@@ -41,19 +43,16 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     }
 
     fun startVpn() {
+        Log.i(AppConfig.TAG, "startVpn")
         val intent = Intent(application, StartActivity::class.java).apply {
-            data = config.value!!
+            data = config
+            putExtra(AppConfig.PREF_ADS_INTERVAL, adsInterval)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_HISTORY)
         }
         application.startActivity(intent)
         switchPosition.postValue(true)
         message.postValue(application.getString(R.string.starting))
         error.postValue(null)
-    }
-
-    fun reallyStartVpn(config: Uri) {
-        Log.i(AppConfig.TAG, "startVpn: $config")
-        ServiceManager.startV2Ray(application, config)
     }
 
     fun stopVpn() {
@@ -90,10 +89,11 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     fun retrieveConfig(activity: Activity) {
         remoteConfig.fetchAndActivate().addOnCompleteListener(activity) { task ->
             if (task.isSuccessful) {
-                val uri = getRandomConfig()
-                if (!config.isInitialized) {
-                    config.postValue(uri)
-                    connectionName.postValue(uri.fragment)
+                adsInterval = remoteConfig.getLong(AppConfig.PREF_ADS_INTERVAL)
+
+                if (config == null) {
+                    config = getRandomConfig()
+                    connectionName.postValue(config?.fragment)
                     message.postValue(application.getString(R.string.ready_to_start))
                     isReady.postValue(true)
                     error.postValue(null)
@@ -122,10 +122,11 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
         override fun onReceive(ctx: Context?, intent: Intent?) {
             when (intent?.getIntExtra("key", 0)) {
                 AppConfig.MSG_STATE_RUNNING -> {
-                    val currentConfig = Uri.parse(intent.getStringExtra("content"))
+                    val uri = Uri.parse(intent.getStringExtra("content"))
+                    config = uri
+
                     isRunning.postValue(true)
-                    config.postValue(currentConfig)
-                    connectionName.postValue(currentConfig.fragment)
+                    connectionName.postValue(uri.fragment)
                     switchPosition.postValue(true)
                     isReady.postValue(true)
                     message.postValue(application.getString(R.string.started))
@@ -151,6 +152,17 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
                     isRunning.postValue(false)
                     switchPosition.postValue(false)
                     message.postValue(null)
+                }
+
+                AppConfig.MSG_STATE_STOP -> {
+                    switchPosition.postValue(false)
+                    message.postValue(
+                        if (true == isRunning.value)
+                            application.getString(R.string.stopping)
+                        else
+                            application.getString(R.string.ready_to_start)
+                    )
+                    error.postValue(null)
                 }
 
                 AppConfig.MSG_STATE_STOP_SUCCESS -> {

@@ -4,14 +4,13 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.asinosoft.vpn.model.MainModel
+import com.asinosoft.vpn.service.ServiceManager
 import com.lottiefiles.dotlottie.core.compose.ui.DotLottieAnimation
 import com.lottiefiles.dotlottie.core.util.DotLottieSource
 import com.yandex.mobile.ads.common.AdError
@@ -28,11 +27,12 @@ class StartActivity : AppCompatActivity(), InterstitialAdLoadListener, Interstit
     private var ad: InterstitialAd? = null
 
     private lateinit var config: Uri
-    private val model: MainModel by viewModels()
+    private var adsInterval: Long = AppConfig.DEFAULT_ADS_INTERVAL
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         config = intent.data ?: return finish()
+        adsInterval = intent.getLongExtra(AppConfig.PREF_ADS_INTERVAL, AppConfig.DEFAULT_ADS_INTERVAL)
         adLoader = InterstitialAdLoader(this).apply {
             val adUnitId = getString(R.string.yandex_ads_unit_id)
             val adConfig = AdRequestConfiguration.Builder(adUnitId).build()
@@ -69,12 +69,12 @@ class StartActivity : AppCompatActivity(), InterstitialAdLoadListener, Interstit
     override fun onAdImpression(impressionData: ImpressionData?) {}
 
     private fun startVpn() {
-        model.reallyStartVpn(config)
+        ServiceManager.startV2Ray(application, config, adsInterval)
         finish()
     }
 
     private fun stopVpn() {
-        model.stopVpn()
+        ServiceManager.stopV2Ray(application)
         finish()
     }
 }

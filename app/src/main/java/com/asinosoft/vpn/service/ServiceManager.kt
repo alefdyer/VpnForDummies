@@ -25,10 +25,10 @@ import com.asinosoft.vpn.util.MessageUtil
 import com.asinosoft.vpn.util.Utils
 import com.asinosoft.vpn.util.V2rayConfigUtil
 import com.asinosoft.vpn.util.fmt.ShadowsocksFmt
+import com.asinosoft.vpn.util.fmt.SocksFmt
+import com.asinosoft.vpn.util.fmt.TrojanFmt
+import com.asinosoft.vpn.util.fmt.VlessFmt
 import com.asinosoft.vpn.util.toSpeedString
-import com.v2ray.ang.util.fmt.SocksFmt
-import com.v2ray.ang.util.fmt.TrojanFmt
-import com.v2ray.ang.util.fmt.VlessFmt
 import go.Seq
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -78,7 +78,7 @@ object ServiceManager {
         }
     }
 
-    fun startV2Ray(context: Context, config: Uri) {
+    fun startV2Ray(context: Context, config: Uri, adsInterval: Long) {
         if (v2rayPoint.isRunning) {
             Log.d(AppConfig.TAG, "VNP service already running")
             return
@@ -86,6 +86,7 @@ object ServiceManager {
 
         val intent = Intent(context.applicationContext, VpnService::class.java)
         intent.setData(config)
+        intent.putExtra(AppConfig.PREF_ADS_INTERVAL, adsInterval)
 
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N_MR1) {
             context.startForegroundService(intent)
@@ -317,11 +318,8 @@ object ServiceManager {
 
     fun cancelNotification() {
         val service = serviceControl?.get()?.getService() ?: return
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) {
-            service.stopForeground(Service.STOP_FOREGROUND_REMOVE)
-        } else {
-            service.stopForeground(true)
-        }
+        service.stopForeground(Service.STOP_FOREGROUND_REMOVE)
+        getNotificationManager()?.cancel(NOTIFICATION_ID)
     }
 
     private fun getNotification(service: Service): NotificationCompat.Builder {
@@ -329,11 +327,7 @@ object ServiceManager {
         val contentPendingIntent = PendingIntent.getActivity(
             service,
             NOTIFICATION_PENDING_INTENT_CONTENT, startMainIntent,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-            } else {
-                PendingIntent.FLAG_UPDATE_CURRENT
-            }
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
         val stopV2RayIntent = Intent(AppConfig.BROADCAST_ACTION_SERVICE)
@@ -343,11 +337,7 @@ object ServiceManager {
         val stopV2RayPendingIntent = PendingIntent.getBroadcast(
             service,
             NOTIFICATION_PENDING_INTENT_STOP_V2RAY, stopV2RayIntent,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-            } else {
-                PendingIntent.FLAG_UPDATE_CURRENT
-            }
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
         return NotificationCompat.Builder(service, channelId)

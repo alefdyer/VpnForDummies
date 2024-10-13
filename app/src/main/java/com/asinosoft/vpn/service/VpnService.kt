@@ -40,6 +40,8 @@ class VpnService : AndroidVpnService(), ServiceControl {
     }
 
     private lateinit var config: Uri
+    private var adsInterval: Long = AppConfig.DEFAULT_ADS_INTERVAL
+
     private var isRunning = false
     private lateinit var mInterface: ParcelFileDescriptor
     private lateinit var process: Process
@@ -265,12 +267,13 @@ class VpnService : AndroidVpnService(), ServiceControl {
 
     private fun scheduleBreakForAds() {
         breakForAdsTimer = Timer().apply {
-            schedule(breakForAds, TimeUnit.SECONDS.toMillis(30))
+            schedule(breakForAds, TimeUnit.MINUTES.toMillis(adsInterval))
         }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         config = intent?.data!!
+        adsInterval = intent.getLongExtra(AppConfig.PREF_ADS_INTERVAL, AppConfig.DEFAULT_ADS_INTERVAL)
         ServiceManager.startV2rayPoint(config)
         return START_STICKY
     }

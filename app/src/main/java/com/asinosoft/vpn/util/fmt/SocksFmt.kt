@@ -1,4 +1,4 @@
-package com.v2ray.ang.util.fmt
+package com.asinosoft.vpn.util.fmt
 
 import com.asinosoft.vpn.dto.EConfigType
 import com.asinosoft.vpn.dto.ServerConfig

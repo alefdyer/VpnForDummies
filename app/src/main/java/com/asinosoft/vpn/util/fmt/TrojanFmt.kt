@@ -1,4 +1,4 @@
-package com.v2ray.ang.util.fmt
+package com.asinosoft.vpn.util.fmt
 
 import android.net.Uri
 import android.text.TextUtils
@@ -6,7 +6,6 @@ import com.asinosoft.vpn.dto.EConfigType
 import com.asinosoft.vpn.dto.ServerConfig
 import com.asinosoft.vpn.dto.V2rayConfig
 import com.asinosoft.vpn.util.Utils
-import java.net.URI
 
 object TrojanFmt {
     fun parseTrojan(uri: Uri): ServerConfig {
