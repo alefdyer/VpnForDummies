@@ -17,14 +17,15 @@ import com.yandex.mobile.ads.common.AdError
 import com.yandex.mobile.ads.common.AdRequestConfiguration
 import com.yandex.mobile.ads.common.AdRequestError
 import com.yandex.mobile.ads.common.ImpressionData
-import com.yandex.mobile.ads.interstitial.InterstitialAd
-import com.yandex.mobile.ads.interstitial.InterstitialAdEventListener
-import com.yandex.mobile.ads.interstitial.InterstitialAdLoadListener
-import com.yandex.mobile.ads.interstitial.InterstitialAdLoader
+import com.yandex.mobile.ads.rewarded.Reward
+import com.yandex.mobile.ads.rewarded.RewardedAd
+import com.yandex.mobile.ads.rewarded.RewardedAdEventListener
+import com.yandex.mobile.ads.rewarded.RewardedAdLoadListener
+import com.yandex.mobile.ads.rewarded.RewardedAdLoader
 
-class StartActivity : AppCompatActivity(), InterstitialAdLoadListener, InterstitialAdEventListener {
-    private var adLoader: InterstitialAdLoader? = null
-    private var ad: InterstitialAd? = null
+class StartActivity : AppCompatActivity(), RewardedAdLoadListener, RewardedAdEventListener {
+    private var adLoader: RewardedAdLoader? = null
+    private var ad: RewardedAd? = null
 
     private lateinit var config: Uri
     private var adsInterval: Long = AppConfig.DEFAULT_ADS_INTERVAL
@@ -32,8 +33,9 @@ class StartActivity : AppCompatActivity(), InterstitialAdLoadListener, Interstit
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         config = intent.data ?: return finish()
-        adsInterval = intent.getLongExtra(AppConfig.PREF_ADS_INTERVAL, AppConfig.DEFAULT_ADS_INTERVAL)
-        adLoader = InterstitialAdLoader(this).apply {
+        adsInterval =
+            intent.getLongExtra(AppConfig.PREF_ADS_INTERVAL, AppConfig.DEFAULT_ADS_INTERVAL)
+        adLoader = RewardedAdLoader(this).apply {
             val adUnitId = getString(R.string.yandex_ads_unit_id)
             val adConfig = AdRequestConfiguration.Builder(adUnitId).build()
             setAdLoadListener(this@StartActivity)
@@ -49,8 +51,8 @@ class StartActivity : AppCompatActivity(), InterstitialAdLoadListener, Interstit
         setContent { WaitingForTheAds() }
     }
 
-    override fun onAdLoaded(interstitialAd: InterstitialAd) {
-        ad = interstitialAd.apply {
+    override fun onAdLoaded(rewarded: RewardedAd) {
+        ad = rewarded.apply {
             setAdEventListener(this@StartActivity)
             show(this@StartActivity)
         }
@@ -59,6 +61,8 @@ class StartActivity : AppCompatActivity(), InterstitialAdLoadListener, Interstit
     override fun onAdFailedToLoad(error: AdRequestError) = startVpn()
 
     override fun onAdShown() {}
+
+    override fun onRewarded(reward: Reward) {}
 
     override fun onAdFailedToShow(adError: AdError) = startVpn()
 
