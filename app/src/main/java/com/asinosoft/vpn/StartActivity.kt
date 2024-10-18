@@ -51,18 +51,26 @@ class StartActivity : AppCompatActivity(), RewardedAdLoadListener, RewardedAdEve
         setContent { WaitingForTheAds() }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        closeAd()
+    }
+
     override fun onAdLoaded(rewarded: RewardedAd) {
         ad = rewarded.apply {
             setAdEventListener(this@StartActivity)
             show(this@StartActivity)
         }
+
+        adLoader?.setAdLoadListener(null)
+        adLoader = null
     }
 
     override fun onAdFailedToLoad(error: AdRequestError) = startVpn()
 
     override fun onAdShown() {}
 
-    override fun onRewarded(reward: Reward) {}
+    override fun onRewarded(reward: Reward) = startVpn()
 
     override fun onAdFailedToShow(adError: AdError) = startVpn()
 
@@ -74,12 +82,20 @@ class StartActivity : AppCompatActivity(), RewardedAdLoadListener, RewardedAdEve
 
     private fun startVpn() {
         ServiceManager.startV2Ray(application, config, adsInterval)
-        finish()
+        finishAndRemoveTask()
     }
 
     private fun stopVpn() {
         ServiceManager.stopV2Ray(application)
-        finish()
+        finishAndRemoveTask()
+    }
+
+    private fun closeAd() {
+        adLoader?.setAdLoadListener(null)
+        adLoader = null
+
+        ad?.setAdEventListener(null)
+        ad = null
     }
 }
 
