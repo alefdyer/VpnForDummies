@@ -44,6 +44,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon
+import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Switch
 import androidx.tv.material3.Text
 import com.asinosoft.vpn.model.MainModel
@@ -127,7 +128,11 @@ fun MainView(
                     .wrapContentSize(Alignment.TopEnd)
             ) {
                 IconButton(onClick = { showMenu = true }) {
-                    Icon(Icons.Filled.MoreVert, stringResource(R.string.settings))
+                    Icon(
+                        imageVector = Icons.Filled.MoreVert,
+                        contentDescription = stringResource(R.string.settings),
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
 
                 DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
@@ -160,12 +165,14 @@ fun MainView(
                 verticalArrangement = Arrangement.SpaceAround
             ) {
                 Text(
-                    text = connectionName, style = Typography.titleLarge
+                    text = connectionName,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = Typography.titleLarge
                 )
 
-                message?.let { Text(text = it) }
+                message?.let { Text(text = it, color = MaterialTheme.colorScheme.onBackground) }
 
-                error?.let { Text(text = it) }
+                error?.let { Text(text = it, color = MaterialTheme.colorScheme.onBackground) }
 
                 Switch(
                     modifier = Modifier
