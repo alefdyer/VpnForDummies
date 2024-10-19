@@ -56,11 +56,16 @@ object AppConfig {
     const val WIREGUARD = "wireguard"
 
     val ALLOWED_APPS = arrayOf(
+        "com.discord",
+        "com.facebook.katana",
+        "com.facebook.orca",
+        "com.google.android.apps.youtube.kids",
+        "com.google.android.apps.youtube.music",
         "com.google.android.youtube",
         "com.google.android.youtube.tv",
         "com.google.android.youtube.tvkids",
-        "com.google.android.apps.youtube.kids",
-        "com.google.android.apps.youtube.music",
+        "com.instagram.android",
+        "com.twitter.android",
     )
 
     val BYPASS_IP_ADDRESSES = arrayOf(
