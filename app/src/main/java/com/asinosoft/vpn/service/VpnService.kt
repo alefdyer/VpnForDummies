@@ -18,6 +18,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import com.asinosoft.vpn.AppConfig
 import com.asinosoft.vpn.dto.ERoutingMode
+import com.asinosoft.vpn.dto.ServiceState
 import com.asinosoft.vpn.util.MessageUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -159,7 +160,7 @@ class VpnService : AndroidVpnService(), ServiceControl {
             try {
                 connectivity.requestNetwork(defaultNetworkRequest, defaultNetworkCallback)
             } catch (e: Exception) {
-                MessageUtil.sendMsg2Service(this, AppConfig.MSG_ERROR_MESSAGE, e.message ?: "")
+                MessageUtil.sendMsg2UI(this, AppConfig.MSG_ERROR_MESSAGE, e.message)
             }
         }
 
@@ -173,8 +174,13 @@ class VpnService : AndroidVpnService(), ServiceControl {
             isRunning = true
             runTun2socks()
             scheduleBreakForAds()
+            MessageUtil.sendMsg2UI(
+                this,
+                AppConfig.MSG_STATE_START_SUCCESS,
+                getState().toJson()
+            )
         } catch (e: Exception) {
-            MessageUtil.sendMsg2Service(this, AppConfig.MSG_ERROR_MESSAGE, e.message ?: "")
+            MessageUtil.sendMsg2UI(this, AppConfig.MSG_ERROR_MESSAGE, e.message)
             stopV2Ray()
         }
     }
@@ -228,7 +234,7 @@ class VpnService : AndroidVpnService(), ServiceControl {
             sendFd()
         } catch (e: Exception) {
             Log.e(AppConfig.TAG, e.toString())
-            MessageUtil.sendMsg2Service(this, AppConfig.MSG_ERROR_MESSAGE, e.message ?: "")
+            MessageUtil.sendMsg2UI(this, AppConfig.MSG_ERROR_MESSAGE, e.message)
         }
     }
 
@@ -254,11 +260,7 @@ class VpnService : AndroidVpnService(), ServiceControl {
                 }
                 break
             } catch (e: Exception) {
-                MessageUtil.sendMsg2Service(
-                    this@VpnService,
-                    AppConfig.MSG_ERROR_MESSAGE,
-                    e.message ?: ""
-                )
+                MessageUtil.sendMsg2UI(this@VpnService, AppConfig.MSG_ERROR_MESSAGE, e.message)
                 if (tries > 5) break
                 tries += 1
             }
@@ -273,7 +275,8 @@ class VpnService : AndroidVpnService(), ServiceControl {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         config = intent?.data!!
-        adsInterval = intent.getLongExtra(AppConfig.PREF_ADS_INTERVAL, AppConfig.DEFAULT_ADS_INTERVAL)
+        adsInterval =
+            intent.getLongExtra(AppConfig.PREF_ADS_INTERVAL, AppConfig.DEFAULT_ADS_INTERVAL)
         ServiceManager.startV2rayPoint(config)
         return START_STICKY
     }
@@ -330,4 +333,7 @@ class VpnService : AndroidVpnService(), ServiceControl {
     override fun vpnProtect(socket: Int): Boolean {
         return protect(socket)
     }
+
+    override fun getState(): ServiceState =
+        ServiceState("$config", breakForAds.scheduledExecutionTime())
 }

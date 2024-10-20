@@ -96,7 +96,7 @@ object ServiceManager {
     }
 
     fun stopV2Ray(context: Context) {
-        MessageUtil.sendMsg2Service(context, AppConfig.MSG_STATE_STOP, "")
+        MessageUtil.sendMsg2Service(context, AppConfig.MSG_STATE_STOP)
     }
 
 
@@ -190,10 +190,8 @@ object ServiceManager {
         }
 
         if (v2rayPoint.isRunning) {
-            MessageUtil.sendMsg2UI(service, AppConfig.MSG_STATE_START_SUCCESS, "")
             showNotification()
         } else {
-            MessageUtil.sendMsg2UI(service, AppConfig.MSG_STATE_START_FAILURE, "")
             cancelNotification()
         }
     }
@@ -211,7 +209,7 @@ object ServiceManager {
             }
         }
 
-        MessageUtil.sendMsg2UI(service, AppConfig.MSG_STATE_STOP_SUCCESS, "")
+        MessageUtil.sendMsg2UI(service, AppConfig.MSG_STATE_STOP_SUCCESS)
         cancelNotification()
 
         try {
@@ -230,13 +228,12 @@ object ServiceManager {
                         MessageUtil.sendMsg2UI(
                             serviceControl.getService(),
                             AppConfig.MSG_STATE_RUNNING,
-                            "$configUri"
+                            serviceControl.getState().toJson()
                         )
                     } else {
                         MessageUtil.sendMsg2UI(
                             serviceControl.getService(),
                             AppConfig.MSG_STATE_NOT_RUNNING,
-                            ""
                         )
                     }
                 }

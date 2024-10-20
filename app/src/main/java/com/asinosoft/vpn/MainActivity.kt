@@ -3,6 +3,7 @@ package com.asinosoft.vpn
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.net.Uri
 import android.net.VpnService
 import android.os.Bundle
 import android.webkit.WebView
@@ -14,17 +15,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,11 +36,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.tv.material3.ExperimentalTvMaterial3Api
-import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Switch
 import androidx.tv.material3.Text
 import com.asinosoft.vpn.model.MainModel
+import com.asinosoft.vpn.ui.EllipsisMenu
 import com.asinosoft.vpn.ui.theme.Typography
 import com.asinosoft.vpn.ui.theme.VpnForDummiesTheme
 
@@ -72,13 +65,13 @@ class MainActivity : ComponentActivity() {
 fun MainView(
     modifier: Modifier = Modifier, model: MainModel = viewModel()
 ) {
-    var showInfo by remember { mutableStateOf<String?>(null) }
-    var showMenu by remember { mutableStateOf(false) }
+    var showInfo by remember { mutableStateOf<Uri?>(null) }
     val connectionName by model.connectionName.observeAsState(stringResource(id = R.string.wait_for_config))
     val isReady by model.isReady.observeAsState(false)
     val switchPosition by model.switchPosition.observeAsState(false)
     val message by model.message.observeAsState("")
     val error by model.error.observeAsState("")
+    val timer by model.timer.observeAsState("")
     val context = LocalContext.current
 
     val requestVpnPermission =
@@ -105,7 +98,7 @@ fun MainView(
         AndroidView(
             factory = {
                 WebView(it).apply {
-                    loadUrl(showInfo!!)
+                    loadUrl("$showInfo")
                 }
             },
             modifier = Modifier.wrapContentHeight()
@@ -122,42 +115,10 @@ fun MainView(
         Column(
             modifier = modifier.fillMaxSize()
         ) {
-            Box(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .wrapContentSize(Alignment.TopEnd)
-            ) {
-                IconButton(onClick = { showMenu = true }) {
-                    Icon(
-                        imageVector = Icons.Filled.MoreVert,
-                        contentDescription = stringResource(R.string.settings),
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.licenses)) },
-                        onClick = {
-                            showInfo = AppConfig.LICENSES.toString()
-                            showMenu = false
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.private_policy)) },
-                        onClick = {
-                            showInfo = AppConfig.PRIVATE_POLICY.toString()
-                            showMenu = false
-                        })
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.rate_us)) },
-                        onClick = {
-                            context.startActivity(Intent(Intent.ACTION_VIEW, AppConfig.RATE_US))
-                            showMenu = false
-                        }
-                    )
-                }
-            }
+            EllipsisMenu(
+                onShowUrl = { showInfo = it },
+                onRateUs = { context.startActivity(Intent(Intent.ACTION_VIEW, AppConfig.RATE_US)) }
+            )
 
             Column(
                 modifier = modifier.fillMaxSize(),
@@ -173,6 +134,8 @@ fun MainView(
                 message?.let { Text(text = it, color = MaterialTheme.colorScheme.onBackground) }
 
                 error?.let { Text(text = it, color = MaterialTheme.colorScheme.onBackground) }
+
+                timer?.let { Text(text = it, color = MaterialTheme.colorScheme.onBackground) }
 
                 Switch(
                     modifier = Modifier

@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
+import android.text.format.DateUtils
 import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
@@ -16,15 +17,21 @@ import androidx.lifecycle.MutableLiveData
 import com.asinosoft.vpn.AppConfig
 import com.asinosoft.vpn.R
 import com.asinosoft.vpn.StartActivity
+import com.asinosoft.vpn.dto.ServiceState
 import com.asinosoft.vpn.service.ServiceManager
 import com.asinosoft.vpn.util.MessageUtil
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.remoteconfig.ktx.remoteConfig
+import java.util.Timer
+import java.util.TimerTask
+import java.util.concurrent.TimeUnit
 
 class MainModel(private val application: Application) : AndroidViewModel(application) {
     private val remoteConfig = Firebase.remoteConfig
     private var config: Uri? = null
     private var adsInterval: Long = AppConfig.DEFAULT_ADS_INTERVAL
+    private val adsTimer = Timer()
+    private var adsTimerTask: TimerTask? = null
 
     val connectionName = MutableLiveData<String>()
     val isReady = MutableLiveData(false)
@@ -33,9 +40,11 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     val testResult = MutableLiveData<String>()
     val message = MutableLiveData<String?>(null)
     val error = MutableLiveData<String?>(null)
+    val timer = MutableLiveData<String?>(null)
 
-    init {
-        MessageUtil.sendMsg2Service(application, AppConfig.MSG_REGISTER_CLIENT, "")
+    override fun onCleared() {
+        super.onCleared()
+        stopTimer()
     }
 
     fun setError(message: String?) {
@@ -43,7 +52,6 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     }
 
     fun startVpn() {
-        Log.i(AppConfig.TAG, "startVpn")
         val intent = Intent(application, StartActivity::class.java).apply {
             data = config
             putExtra(AppConfig.PREF_ADS_INTERVAL, adsInterval)
@@ -57,6 +65,7 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
 
     fun stopVpn() {
         Log.i(AppConfig.TAG, "stopVpn")
+        stopTimer()
         ServiceManager.stopV2Ray(application)
         switchPosition.postValue(false)
         message.postValue(
@@ -83,7 +92,7 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
             )
         }
 
-        MessageUtil.sendMsg2Service(application, AppConfig.MSG_REGISTER_CLIENT, "")
+        MessageUtil.sendMsg2Service(application, AppConfig.MSG_REGISTER_CLIENT)
     }
 
     fun retrieveConfig(activity: Activity) {
@@ -121,40 +130,18 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     private val mMsgReceiver = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context?, intent: Intent?) {
             when (intent?.getIntExtra("key", 0)) {
-                AppConfig.MSG_STATE_RUNNING -> {
-                    val uri = Uri.parse(intent.getStringExtra("content"))
-                    config = uri
+                AppConfig.MSG_STATE_RUNNING ->
+                    onVpnRunning(ServiceState.fromJson(intent.getStringExtra("content")))
 
-                    isRunning.postValue(true)
-                    connectionName.postValue(uri.fragment)
-                    switchPosition.postValue(true)
-                    isReady.postValue(true)
-                    message.postValue(application.getString(R.string.started))
-                    error.postValue(null)
-                }
+                AppConfig.MSG_STATE_NOT_RUNNING -> onVpnNotRunning()
 
-                AppConfig.MSG_STATE_NOT_RUNNING -> {
-                    isRunning.postValue(false)
-                    switchPosition.postValue(false)
-                    message.postValue(application.getString(R.string.stopped))
-                    error.postValue(null)
-                }
+                AppConfig.MSG_STATE_START_SUCCESS ->
+                    onVpnStarted(ServiceState.fromJson(intent.getStringExtra("content")))
 
-                AppConfig.MSG_STATE_START_SUCCESS -> {
-                    isRunning.postValue(true)
-                    switchPosition.postValue(true)
-                    Toast.makeText(application, R.string.started, Toast.LENGTH_SHORT).show()
-                    message.postValue(application.getString(R.string.started))
-                    error.postValue(null)
-                }
-
-                AppConfig.MSG_STATE_START_FAILURE -> {
-                    isRunning.postValue(false)
-                    switchPosition.postValue(false)
-                    message.postValue(null)
-                }
+                AppConfig.MSG_STATE_START_FAILURE -> onVpnFailed()
 
                 AppConfig.MSG_STATE_STOP -> {
+                    stopTimer()
                     switchPosition.postValue(false)
                     message.postValue(
                         if (true == isRunning.value)
@@ -165,13 +152,7 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
                     error.postValue(null)
                 }
 
-                AppConfig.MSG_STATE_STOP_SUCCESS -> {
-                    isRunning.postValue(false)
-                    switchPosition.postValue(false)
-                    message.postValue(application.getString(R.string.stopped))
-                    error.postValue(null)
-                    Toast.makeText(application, R.string.stopped, Toast.LENGTH_SHORT).show()
-                }
+                AppConfig.MSG_STATE_STOP_SUCCESS -> onVpnStopped()
 
                 AppConfig.MSG_MEASURE_DELAY_SUCCESS -> {
                     intent.getStringExtra("content")?.let {
@@ -186,5 +167,70 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
                 }
             }
         }
+    }
+
+    private fun startTimer(till: Long) {
+        adsTimerTask?.cancel()
+
+        adsTimerTask = object : TimerTask() {
+            override fun run() {
+                val seconds = TimeUnit.MILLISECONDS.toSeconds(till - System.currentTimeMillis())
+                val time = DateUtils.formatElapsedTime(seconds)
+                timer.postValue(time)
+            }
+        }
+
+        adsTimer.schedule(adsTimerTask, 0L, TimeUnit.SECONDS.toMillis(1))
+    }
+
+    private fun stopTimer() {
+        adsTimerTask?.cancel()
+        adsTimerTask = null
+        timer.postValue(null)
+    }
+
+    private fun onVpnRunning(serviceState: ServiceState) {
+        config = Uri.parse(serviceState.config)
+        startTimer(serviceState.adsTime)
+
+        isRunning.postValue(true)
+        connectionName.postValue(config?.fragment)
+        switchPosition.postValue(true)
+        isReady.postValue(true)
+        message.postValue(application.getString(R.string.started))
+        error.postValue(null)
+    }
+
+    private fun onVpnNotRunning() {
+        isRunning.postValue(false)
+        switchPosition.postValue(false)
+        message.postValue(application.getString(R.string.stopped))
+        error.postValue(null)
+    }
+
+    private fun onVpnStarted(serviceState: ServiceState) {
+        config = Uri.parse(serviceState.config)
+        startTimer(serviceState.adsTime)
+
+        isRunning.postValue(true)
+        switchPosition.postValue(true)
+        message.postValue(application.getString(R.string.started))
+        error.postValue(null)
+        Toast.makeText(application, R.string.started, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun onVpnStopped() {
+        stopTimer()
+        isRunning.postValue(false)
+        switchPosition.postValue(false)
+        message.postValue(application.getString(R.string.stopped))
+        error.postValue(null)
+        Toast.makeText(application, R.string.stopped, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun onVpnFailed() {
+        isRunning.postValue(false)
+        switchPosition.postValue(false)
+        message.postValue(null)
     }
 }
