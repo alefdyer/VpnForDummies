@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.text.format.DateUtils
 import android.util.Log
 import android.widget.Toast
@@ -20,6 +21,7 @@ import com.asinosoft.vpn.StartActivity
 import com.asinosoft.vpn.dto.ServiceState
 import com.asinosoft.vpn.service.ServiceManager
 import com.asinosoft.vpn.util.MessageUtil
+import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.remoteconfig.ktx.remoteConfig
 import java.util.Timer
@@ -52,6 +54,7 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     }
 
     fun startVpn() {
+        Firebase.analytics.logEvent("vpn_start", Bundle.EMPTY)
         val intent = Intent(application, StartActivity::class.java).apply {
             data = config
             putExtra(AppConfig.PREF_ADS_INTERVAL, adsInterval)
@@ -64,7 +67,7 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     }
 
     fun stopVpn() {
-        Log.i(AppConfig.TAG, "stopVpn")
+        Firebase.analytics.logEvent("vpn_stop", Bundle.EMPTY)
         stopTimer()
         ServiceManager.stopV2Ray(application)
         switchPosition.postValue(false)
@@ -79,17 +82,11 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     fun startListenBroadcast() {
+        val broadcast = IntentFilter(AppConfig.BROADCAST_ACTION_ACTIVITY)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            application.registerReceiver(
-                mMsgReceiver,
-                IntentFilter(AppConfig.BROADCAST_ACTION_ACTIVITY),
-                Context.RECEIVER_EXPORTED
-            )
+            application.registerReceiver(mMsgReceiver, broadcast, Context.RECEIVER_EXPORTED)
         } else {
-            application.registerReceiver(
-                mMsgReceiver,
-                IntentFilter(AppConfig.BROADCAST_ACTION_ACTIVITY)
-            )
+            application.registerReceiver(mMsgReceiver, broadcast)
         }
 
         MessageUtil.sendMsg2Service(application, AppConfig.MSG_REGISTER_CLIENT)
