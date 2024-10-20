@@ -14,6 +14,7 @@ android {
         targetSdk = 34
         versionCode = 7
         versionName = "1.0"
+        setProperty("archivesBaseName", "$applicationId@$versionName.$versionCode")
         vectorDrawables {
             useSupportLibrary = true
         }

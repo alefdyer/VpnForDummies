@@ -20,4 +20,6 @@
     <string name="licenses">Licenses</string>
     <string name="private_policy">Private policy</string>
     <string name="rate_us">Rate Us</string>
+    <string name="version">Version: %s.%s</string>
+    <string name="last_update">Last update: %s</string>
 </resources>
