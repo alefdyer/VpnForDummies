@@ -11,7 +11,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.format.DateUtils
-import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
@@ -24,6 +23,7 @@ import com.asinosoft.vpn.util.MessageUtil
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.remoteconfig.ktx.remoteConfig
+import timber.log.Timber
 import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.TimeUnit
@@ -112,14 +112,14 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
 
     private fun getRandomConfig(): Uri {
         val keys = remoteConfig.getKeysByPrefix(AppConfig.PREF_CONNECTION_PREFIX)
-        Log.d(AppConfig.TAG, "Config complete: $keys")
+        Timber.d("Config complete: $keys")
 
         val connection: String = remoteConfig.all.filter { entry ->
             entry.key.startsWith(AppConfig.PREF_CONNECTION_PREFIX)
         }.values.random().asString()
 
         val config = Uri.parse(connection)
-        Log.d(AppConfig.TAG, "Config: $config")
+        Timber.d("Config: $config")
 
         return config
     }

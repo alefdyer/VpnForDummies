@@ -6,13 +6,13 @@ plugins {
 
 android {
     namespace = "com.asinosoft.vpn"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.asinosoft.vpn"
         minSdk = 24
-        targetSdk = 34
-        versionCode = 8
+        targetSdk = 35
+        versionCode = 9
         versionName = "1.0"
         setProperty("archivesBaseName", "$applicationId@$versionName.$versionCode")
         vectorDrawables {
@@ -93,6 +93,7 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.mobileads)
     implementation(libs.lottie)
+    implementation(libs.timber)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)

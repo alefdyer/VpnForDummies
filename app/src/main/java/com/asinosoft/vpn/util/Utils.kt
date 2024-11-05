@@ -3,8 +3,7 @@ package com.asinosoft.vpn.util
 import android.content.Context
 import android.provider.Settings
 import android.util.Base64
-import android.util.Log
-import com.asinosoft.vpn.AppConfig
+import timber.log.Timber
 import java.net.URLDecoder
 import java.net.URLEncoder
 
@@ -46,12 +45,12 @@ object Utils {
         try {
             return Base64.decode(text, Base64.NO_WRAP).toString(Charsets.UTF_8)
         } catch (e: Exception) {
-            Log.i(AppConfig.TAG, "Parse base64 standard failed $e")
+            Timber.i("Parse base64 standard failed $e")
         }
         try {
             return Base64.decode(text, Base64.NO_WRAP.or(Base64.URL_SAFE)).toString(Charsets.UTF_8)
         } catch (e: Exception) {
-            Log.i(AppConfig.TAG, "Parse base64 url safe failed $e")
+            Timber.w("Parse base64 url safe failed $e")
         }
         return null
     }

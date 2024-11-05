@@ -2,11 +2,11 @@ package com.asinosoft.vpn.util
 
 import android.content.Context
 import android.text.TextUtils
-import android.util.Log
 import com.asinosoft.vpn.AppConfig
 import com.asinosoft.vpn.dto.ERoutingMode
 import com.asinosoft.vpn.dto.V2rayConfig
 import com.google.gson.Gson
+import timber.log.Timber
 
 object V2rayConfigUtil {
     fun getV2rayConfig(
@@ -333,7 +333,7 @@ object V2rayConfigUtil {
     }
 
     private fun trace(message: String): String {
-        Log.d(AppConfig.TAG, message)
+        Timber.d(message)
         return ""
     }
 }

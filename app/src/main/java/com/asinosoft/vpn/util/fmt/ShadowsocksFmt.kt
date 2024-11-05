@@ -1,10 +1,9 @@
 package com.asinosoft.vpn.util.fmt
 
-import android.util.Log
-import com.asinosoft.vpn.AppConfig
 import com.asinosoft.vpn.dto.EConfigType
 import com.asinosoft.vpn.dto.ServerConfig
 import com.asinosoft.vpn.util.Utils
+import timber.log.Timber
 import java.net.URI
 
 object ShadowsocksFmt {
@@ -91,7 +90,7 @@ object ShadowsocksFmt {
             if (query != "") {
                 val queryPairs = HashMap<String, String>()
                 val pairs = query.split(";")
-                Log.d(AppConfig.PACKAGE, pairs.toString())
+                Timber.d(pairs.toString())
                 for (pair in pairs) {
                     val idx = pair.indexOf("=")
                     if (idx == -1) {
@@ -101,7 +100,7 @@ object ShadowsocksFmt {
                             Utils.urlDecode(pair.substring(idx + 1))
                     }
                 }
-                Log.d(AppConfig.PACKAGE, queryPairs.toString())
+                Timber.d(queryPairs.toString())
                 var sni: String? = ""
                 if (queryPairs["plugin"] == "obfs-local" && queryPairs["obfs"] == "http") {
                     sni = config.outboundBean?.streamSettings?.populateTransportSettings(
@@ -150,7 +149,7 @@ object ShadowsocksFmt {
             }
             return true
         } catch (e: Exception) {
-            Log.d(AppConfig.PACKAGE, e.toString())
+            Timber.w(e.toString())
             return false
         }
     }

@@ -14,7 +14,6 @@ import android.os.Build
 import android.os.Handler
 import android.os.ParcelFileDescriptor
 import android.os.StrictMode
-import android.util.Log
 import androidx.annotation.RequiresApi
 import com.asinosoft.vpn.AppConfig
 import com.asinosoft.vpn.dto.ERoutingMode
@@ -23,6 +22,7 @@ import com.asinosoft.vpn.util.MessageUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.io.File
 import java.lang.ref.SoftReference
 import java.util.Timer
@@ -50,7 +50,7 @@ class VpnService : AndroidVpnService(), ServiceControl {
     private var breakForAdsTimer: Timer? = null
     private val breakForAds = object : TimerTask() {
         override fun run() {
-            Log.w(AppConfig.TAG, "Break for Ads")
+            Timber.w("Break for Ads")
             stopService()
         }
     }
@@ -160,7 +160,7 @@ class VpnService : AndroidVpnService(), ServiceControl {
             try {
                 connectivity.requestNetwork(defaultNetworkRequest, defaultNetworkCallback)
             } catch (e: Exception) {
-                MessageUtil.sendMsg2UI(this, AppConfig.MSG_ERROR_MESSAGE, e.message)
+                MessageUtil.sendMsg2UI(this, AppConfig.MSG_ERROR_MESSAGE, "Request network error: ${e.message}")
             }
         }
 
@@ -180,7 +180,7 @@ class VpnService : AndroidVpnService(), ServiceControl {
                 getState().toJson()
             )
         } catch (e: Exception) {
-            MessageUtil.sendMsg2UI(this, AppConfig.MSG_ERROR_MESSAGE, e.message)
+            MessageUtil.sendMsg2UI(this, AppConfig.MSG_ERROR_MESSAGE, "Failed to setup: ${e.message}")
             stopV2Ray()
         }
     }
@@ -211,7 +211,7 @@ class VpnService : AndroidVpnService(), ServiceControl {
             cmd.add(PRIVATE_VLAN6_ROUTER)
         }
 
-        Log.d(AppConfig.TAG, cmd.toString())
+        Timber.d(cmd.toString())
 
         try {
             process =
@@ -219,12 +219,12 @@ class VpnService : AndroidVpnService(), ServiceControl {
                     .start()
 
             thread {
-                Log.d(AppConfig.TAG, "tun2socks check")
+                Timber.d("tun2socks check")
                 val result = process.waitFor()
-                Log.d(AppConfig.TAG, "tun2socks exited with $result")
+                Timber.d("tun2socks exited with $result")
 
                 if (isRunning) {
-                    Log.d(AppConfig.TAG, "tun2socks restart")
+                    Timber.d("tun2socks restart")
                     Handler(mainLooper).postDelayed({
                         runTun2socks()
                     }, 100)
@@ -233,21 +233,21 @@ class VpnService : AndroidVpnService(), ServiceControl {
 
             sendFd()
         } catch (e: Exception) {
-            Log.e(AppConfig.TAG, e.toString())
-            MessageUtil.sendMsg2UI(this, AppConfig.MSG_ERROR_MESSAGE, e.message)
+            Timber.w(e.toString())
+            MessageUtil.sendMsg2UI(this, AppConfig.MSG_ERROR_MESSAGE, "Failed to start tun2socks: ${e.message}")
         }
     }
 
     private fun sendFd() {
         val fd = mInterface.fileDescriptor
         val path = File(applicationContext.filesDir, "sock_path").absolutePath
-        Log.d(AppConfig.TAG, path)
+        Timber.d(path)
 
         CoroutineScope(Dispatchers.IO).launch {
             var tries = 0
             while (true) try {
                 Thread.sleep(50L shl tries)
-                Log.d(AppConfig.TAG, "sendFd tries: $tries")
+                Timber.d("sendFd tries: $tries")
                 LocalSocket().use { localSocket ->
                     localSocket.connect(
                         LocalSocketAddress(
@@ -260,7 +260,7 @@ class VpnService : AndroidVpnService(), ServiceControl {
                 }
                 break
             } catch (e: Exception) {
-                MessageUtil.sendMsg2UI(this@VpnService, AppConfig.MSG_ERROR_MESSAGE, e.message)
+                MessageUtil.sendMsg2UI(this@VpnService, AppConfig.MSG_ERROR_MESSAGE, "Failed to sendFd: ${e.message}")
                 if (tries > 5) break
                 tries += 1
             }
@@ -292,10 +292,10 @@ class VpnService : AndroidVpnService(), ServiceControl {
         }
 
         try {
-            Log.d(AppConfig.TAG, "tun2socks destroy")
+            Timber.d("tun2socks destroy")
             process.destroy()
         } catch (e: Exception) {
-            Log.d(AppConfig.TAG, e.toString())
+            Timber.d(e.toString())
         }
 
         ServiceManager.stopV2rayPoint()

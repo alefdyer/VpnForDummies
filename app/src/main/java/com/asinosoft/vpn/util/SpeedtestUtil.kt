@@ -8,6 +8,7 @@ import com.asinosoft.vpn.AppConfig
 import com.asinosoft.vpn.R
 import kotlinx.coroutines.isActive
 import libv2ray.Libv2ray
+import timber.log.Timber
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.InetSocketAddress
@@ -39,7 +40,7 @@ object SpeedtestUtil {
         return try {
             Libv2ray.measureOutboundDelay(config, AppConfig.DELAY_TEST_URL)
         } catch (e: Exception) {
-            Log.d(AppConfig.PACKAGE, "realPing: $e")
+            Timber.w("realPing: $e")
             -1L
         }
     }
@@ -80,7 +81,7 @@ object SpeedtestUtil {
         } catch (e: UnknownHostException) {
             e.printStackTrace()
         } catch (e: IOException) {
-            Log.d(AppConfig.PACKAGE, "socketConnectTime IOException: $e")
+            Timber.w("socketConnectTime IOException: $e")
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -132,11 +133,11 @@ object SpeedtestUtil {
             }
         } catch (e: IOException) {
             // network exception
-            Log.d(AppConfig.PACKAGE, "testConnection IOException: " + Log.getStackTraceString(e))
+            Timber.w("testConnection IOException: " + Log.getStackTraceString(e))
             result = context.getString(R.string.connection_test_error, e.message)
         } catch (e: Exception) {
             // library exception, eg sumsung
-            Log.d(AppConfig.PACKAGE, "testConnection Exception: " + Log.getStackTraceString(e))
+            Timber.w("testConnection Exception: " + Log.getStackTraceString(e))
             result = context.getString(R.string.connection_test_error, e.message)
         } finally {
             conn?.disconnect()

@@ -1,6 +1,7 @@
 package com.asinosoft.vpn.ui
 
 import android.net.Uri
+import android.os.Build
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,8 +42,8 @@ fun EllipsisMenu(
     val packageInfo = context.packageManager.getPackageInfo(LocalContext.current.packageName, 0)
     val version = stringResource(
         R.string.version,
-        packageInfo.versionName,
-        packageInfo.longVersionCode
+        "${packageInfo.versionName}",
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) packageInfo.longVersionCode else ""
     )
     val lastUpdate = stringResource(
         R.string.last_update,

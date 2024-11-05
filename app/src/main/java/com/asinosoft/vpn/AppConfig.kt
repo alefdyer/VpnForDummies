@@ -4,7 +4,6 @@ import android.net.Uri
 import com.asinosoft.vpn.dto.SubnetAddress
 
 object AppConfig {
-    const val TAG = "VpnForDummies"
     const val PACKAGE = "com.asinosoft.vpn"
     val LICENSES: Uri = Uri.parse("file:///android_asset/licenses.html")
     val PRIVATE_POLICY: Uri = Uri.parse("https://asinosoft.ru/vpn_privacy_policy.html")

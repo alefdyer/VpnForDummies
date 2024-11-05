@@ -13,7 +13,6 @@ import android.content.IntentFilter
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.asinosoft.vpn.AppConfig
@@ -36,6 +35,7 @@ import kotlinx.coroutines.launch
 import libv2ray.Libv2ray
 import libv2ray.V2RayPoint
 import libv2ray.V2RayVPNServiceSupportsSet
+import timber.log.Timber
 import java.lang.ref.SoftReference
 import java.util.Timer
 import java.util.TimerTask
@@ -80,7 +80,7 @@ object ServiceManager {
 
     fun startV2Ray(context: Context, config: Uri, adsInterval: Long) {
         if (v2rayPoint.isRunning) {
-            Log.d(AppConfig.TAG, "VNP service already running")
+            Timber.d("VNP service already running")
             return
         }
 
@@ -108,7 +108,7 @@ object ServiceManager {
                 serviceControl.stopService()
                 0
             } catch (e: Exception) {
-                Log.d(AppConfig.PACKAGE, e.toString())
+                Timber.w(e.toString())
                 -1
             }
         }
@@ -135,7 +135,7 @@ object ServiceManager {
                 startSpeedNotification()
                 0
             } catch (e: Exception) {
-                Log.d(AppConfig.PACKAGE, e.toString())
+                Timber.w(e.toString())
                 -1
             }
         }
@@ -173,7 +173,7 @@ object ServiceManager {
                 service.registerReceiver(mMsgReceive, mFilter)
             }
         } catch (e: Exception) {
-            Log.w(AppConfig.PACKAGE, e.toString())
+            Timber.w(e.toString())
         }
 
         val outbound = config.outboundBean ?: return trace("Config doesn't define outbound")
@@ -181,12 +181,12 @@ object ServiceManager {
             V2rayConfigUtil.getV2rayConfig(service, outbound, config.remarks)
         v2rayPoint.domainName = config.getV2rayPointDomainAndPort()
 
-        Log.d(AppConfig.TAG, "Connect to ${v2rayPoint.configureFileContent}")
+        Timber.d("Connect to ${v2rayPoint.configureFileContent}")
 
         try {
             v2rayPoint.runLoop(false)
         } catch (e: Exception) {
-            Log.w(AppConfig.PACKAGE, e.toString())
+            Timber.w(e.toString())
         }
 
         if (v2rayPoint.isRunning) {
@@ -204,7 +204,7 @@ object ServiceManager {
                 try {
                     v2rayPoint.stopLoop()
                 } catch (e: Exception) {
-                    Log.d(AppConfig.PACKAGE, e.toString())
+                    Timber.w(e.toString())
                 }
             }
         }
@@ -215,7 +215,7 @@ object ServiceManager {
         try {
             service.unregisterReceiver(mMsgReceive)
         } catch (e: Exception) {
-            Log.d(AppConfig.PACKAGE, e.toString())
+            Timber.w(e.toString())
         }
     }
 
@@ -270,14 +270,14 @@ object ServiceManager {
                 try {
                     time = v2rayPoint.measureDelay(AppConfig.DELAY_TEST_URL)
                 } catch (e: Exception) {
-                    Log.d(AppConfig.PACKAGE, "measureV2rayDelay: $e")
+                    Timber.w("measureV2rayDelay: $e")
                     error = e.message?.substringAfter("\":") ?: "empty message"
                 }
                 if (time == -1L) {
                     try {
                         time = v2rayPoint.measureDelay(AppConfig.DELAY_TEST_URL_2)
                     } catch (e: Exception) {
-                        Log.d(AppConfig.PACKAGE, "measureV2rayDelay: $e")
+                        Timber.w("measureV2rayDelay: $e")
                         error = e.message?.substringAfter("\":") ?: "empty message"
                     }
                 }
@@ -437,6 +437,6 @@ object ServiceManager {
     }
 
     private fun trace(message: String) {
-        Log.d(AppConfig.TAG, message)
+        Timber.d(message)
     }
 }
