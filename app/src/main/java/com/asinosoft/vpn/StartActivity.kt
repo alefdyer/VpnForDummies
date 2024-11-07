@@ -1,6 +1,5 @@
 package com.asinosoft.vpn
 
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
@@ -10,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.asinosoft.vpn.dto.Config
 import com.asinosoft.vpn.service.ServiceManager
 import com.lottiefiles.dotlottie.core.compose.ui.DotLottieAnimation
 import com.lottiefiles.dotlottie.core.util.DotLottieSource
@@ -27,14 +27,11 @@ class StartActivity : AppCompatActivity(), RewardedAdLoadListener, RewardedAdEve
     private var adLoader: RewardedAdLoader? = null
     private var ad: RewardedAd? = null
 
-    private lateinit var config: Uri
-    private var adsInterval: Long = AppConfig.DEFAULT_ADS_INTERVAL
+    private lateinit var config: Config
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        config = intent.data ?: return finish()
-        adsInterval =
-            intent.getLongExtra(AppConfig.PREF_ADS_INTERVAL, AppConfig.DEFAULT_ADS_INTERVAL)
+        config = Config.fromIntent(intent) ?: return finish()
         adLoader = RewardedAdLoader(this).apply {
             val adUnitId = getString(R.string.yandex_ads_unit_id)
             val adConfig = AdRequestConfiguration.Builder(adUnitId).build()
@@ -81,7 +78,7 @@ class StartActivity : AppCompatActivity(), RewardedAdLoadListener, RewardedAdEve
     override fun onAdImpression(impressionData: ImpressionData?) {}
 
     private fun startVpn() {
-        ServiceManager.startV2Ray(application, config, adsInterval)
+        ServiceManager.startV2Ray(application, config)
         finishAndRemoveTask()
     }
 

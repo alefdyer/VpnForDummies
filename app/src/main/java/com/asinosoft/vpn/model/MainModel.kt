@@ -7,35 +7,39 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.format.DateUtils
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.asinosoft.vpn.AppConfig
 import com.asinosoft.vpn.R
 import com.asinosoft.vpn.StartActivity
+import com.asinosoft.vpn.api.ServitorApiFactory
+import com.asinosoft.vpn.dto.Config
 import com.asinosoft.vpn.dto.ServiceState
 import com.asinosoft.vpn.service.ServiceManager
 import com.asinosoft.vpn.util.MessageUtil
+import com.asinosoft.vpn.util.myDeviceId
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.remoteconfig.ktx.remoteConfig
+import com.google.gson.Gson
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.TimeUnit
 
 class MainModel(private val application: Application) : AndroidViewModel(application) {
+    private val deviceId = application.myDeviceId
     private val remoteConfig = Firebase.remoteConfig
-    private var config: Uri? = null
-    private var adsInterval: Long = AppConfig.DEFAULT_ADS_INTERVAL
     private val adsTimer = Timer()
     private var adsTimerTask: TimerTask? = null
 
-    val connectionName = MutableLiveData<String>()
+    val config = MutableLiveData<Config>()
     val isReady = MutableLiveData(false)
     val isRunning = MutableLiveData(false)
     val switchPosition = MutableLiveData(false)
@@ -56,8 +60,7 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     fun startVpn() {
         Firebase.analytics.logEvent("vpn_start", Bundle.EMPTY)
         val intent = Intent(application, StartActivity::class.java).apply {
-            data = config
-            putExtra(AppConfig.PREF_ADS_INTERVAL, adsInterval)
+            putExtra("config", Gson().toJson(config.value))
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_HISTORY)
         }
         application.startActivity(intent)
@@ -95,33 +98,28 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     fun retrieveConfig(activity: Activity) {
         remoteConfig.fetchAndActivate().addOnCompleteListener(activity) { task ->
             if (task.isSuccessful) {
-                adsInterval = remoteConfig.getLong(AppConfig.PREF_ADS_INTERVAL)
-
-                if (config == null) {
-                    config = getRandomConfig()
-                    connectionName.postValue(config?.fragment)
-                    message.postValue(application.getString(R.string.ready_to_start))
-                    isReady.postValue(true)
-                    error.postValue(null)
-                }
+                val servitorUrl = remoteConfig.getString(AppConfig.PREF_SERVITOR_URL)
+                viewModelScope.launch { requestConfig(servitorUrl) }
             } else {
                 setError(application.getString(R.string.config_error, task.exception))
             }
         }
     }
 
-    private fun getRandomConfig(): Uri {
-        val keys = remoteConfig.getKeysByPrefix(AppConfig.PREF_CONNECTION_PREFIX)
-        Timber.d("Config complete: $keys")
-
-        val connection: String = remoteConfig.all.filter { entry ->
-            entry.key.startsWith(AppConfig.PREF_CONNECTION_PREFIX)
-        }.values.random().asString()
-
-        val config = Uri.parse(connection)
-        Timber.d("Config: $config")
-
-        return config
+    private suspend fun requestConfig(servitorUrl: String) {
+        try {
+            val servitor = ServitorApiFactory().connect(servitorUrl)
+            Timber.w("Device ID: $deviceId")
+            val servitorConfig = servitor.getConfig(deviceId)
+            Timber.w("Config: $servitorConfig")
+            config.postValue(servitorConfig)
+            message.postValue(application.getString(R.string.ready_to_start))
+            isReady.postValue(true)
+            error.postValue(null)
+        } catch (e: Exception) {
+            Timber.e(e.message)
+            setError(application.getString(R.string.config_error, e.message))
+        }
     }
 
     private val mMsgReceiver = object : BroadcastReceiver() {
@@ -172,6 +170,7 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
         adsTimerTask = object : TimerTask() {
             override fun run() {
                 val seconds = TimeUnit.MILLISECONDS.toSeconds(till - System.currentTimeMillis())
+                    .coerceAtLeast(0)
                 val time = DateUtils.formatElapsedTime(seconds)
                 timer.postValue(time)
             }
@@ -187,11 +186,10 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     }
 
     private fun onVpnRunning(serviceState: ServiceState) {
-        config = Uri.parse(serviceState.config)
+        config.postValue(serviceState.config)
         startTimer(serviceState.adsTime)
 
         isRunning.postValue(true)
-        connectionName.postValue(config?.fragment)
         switchPosition.postValue(true)
         isReady.postValue(true)
         message.postValue(application.getString(R.string.started))
@@ -206,7 +204,7 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     }
 
     private fun onVpnStarted(serviceState: ServiceState) {
-        config = Uri.parse(serviceState.config)
+        config.postValue(serviceState.config)
         startTimer(serviceState.adsTime)
 
         isRunning.postValue(true)

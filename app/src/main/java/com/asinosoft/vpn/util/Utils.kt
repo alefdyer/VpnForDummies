@@ -5,7 +5,7 @@ import android.provider.Settings
 import android.util.Base64
 import timber.log.Timber
 import java.net.URLDecoder
-import java.net.URLEncoder
+import java.util.UUID
 
 object Utils {
     fun getDeviceIdForXUDPBaseKey(): String {
@@ -157,3 +157,14 @@ object Utils {
             it.readText()
         }
 }
+
+val Context.myDeviceId: String
+    get() {
+        val preferences = getSharedPreferences("settings", Context.MODE_PRIVATE)
+        var deviceId = preferences.getString("device_id", null)
+        if (null == deviceId) {
+            deviceId = UUID.randomUUID().toString()
+            preferences.edit().putString("device_id", deviceId).apply()
+        }
+        return deviceId
+    }

@@ -35,12 +35,12 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Switch
 import androidx.tv.material3.Text
 import com.asinosoft.vpn.model.MainModel
 import com.asinosoft.vpn.ui.EllipsisMenu
+import com.asinosoft.vpn.ui.Location
 import com.asinosoft.vpn.ui.theme.Typography
 import com.asinosoft.vpn.ui.theme.VpnForDummiesTheme
 
@@ -60,13 +60,12 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun MainView(
     modifier: Modifier = Modifier, model: MainModel = viewModel()
 ) {
     var showInfo by remember { mutableStateOf<Uri?>(null) }
-    val connectionName by model.connectionName.observeAsState(stringResource(id = R.string.wait_for_config))
+    val config by model.config.observeAsState(null)
     val isReady by model.isReady.observeAsState(false)
     val switchPosition by model.switchPosition.observeAsState(false)
     val message by model.message.observeAsState("")
@@ -125,11 +124,17 @@ fun MainView(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceAround
             ) {
-                Text(
-                    text = connectionName,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    style = Typography.titleLarge
-                )
+                config?.let {
+                    Location(it.country)
+                }
+
+                if (config == null) {
+                    Text(
+                        text = stringResource(R.string.wait_for_config),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        style = Typography.titleLarge
+                    )
+                }
 
                 message?.let { Text(text = it, color = MaterialTheme.colorScheme.onBackground) }
 

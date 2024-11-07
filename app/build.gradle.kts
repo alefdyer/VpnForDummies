@@ -12,8 +12,8 @@ android {
         applicationId = "com.asinosoft.vpn"
         minSdk = 24
         targetSdk = 35
-        versionCode = 9
-        versionName = "1.0"
+        versionCode = 10
+        versionName = "1.1"
         setProperty("archivesBaseName", "$applicationId@$versionName.$versionCode")
         vectorDrawables {
             useSupportLibrary = true
@@ -94,6 +94,8 @@ dependencies {
     implementation(libs.mobileads)
     implementation(libs.lottie)
     implementation(libs.timber)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)

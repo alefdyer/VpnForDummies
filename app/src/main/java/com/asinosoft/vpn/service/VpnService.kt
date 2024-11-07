@@ -16,6 +16,7 @@ import android.os.ParcelFileDescriptor
 import android.os.StrictMode
 import androidx.annotation.RequiresApi
 import com.asinosoft.vpn.AppConfig
+import com.asinosoft.vpn.dto.Config
 import com.asinosoft.vpn.dto.ERoutingMode
 import com.asinosoft.vpn.dto.ServiceState
 import com.asinosoft.vpn.util.MessageUtil
@@ -40,8 +41,7 @@ class VpnService : AndroidVpnService(), ServiceControl {
         private const val PRIVATE_VLAN6_ROUTER = "da26:2626::2"
     }
 
-    private lateinit var config: Uri
-    private var adsInterval: Long = AppConfig.DEFAULT_ADS_INTERVAL
+    private lateinit var config: Config
 
     private var isRunning = false
     private lateinit var mInterface: ParcelFileDescriptor
@@ -160,7 +160,11 @@ class VpnService : AndroidVpnService(), ServiceControl {
             try {
                 connectivity.requestNetwork(defaultNetworkRequest, defaultNetworkCallback)
             } catch (e: Exception) {
-                MessageUtil.sendMsg2UI(this, AppConfig.MSG_ERROR_MESSAGE, "Request network error: ${e.message}")
+                MessageUtil.sendMsg2UI(
+                    this,
+                    AppConfig.MSG_ERROR_MESSAGE,
+                    "Request network error: ${e.message}"
+                )
             }
         }
 
@@ -180,7 +184,11 @@ class VpnService : AndroidVpnService(), ServiceControl {
                 getState().toJson()
             )
         } catch (e: Exception) {
-            MessageUtil.sendMsg2UI(this, AppConfig.MSG_ERROR_MESSAGE, "Failed to setup: ${e.message}")
+            MessageUtil.sendMsg2UI(
+                this,
+                AppConfig.MSG_ERROR_MESSAGE,
+                "Failed to setup: ${e.message}"
+            )
             stopV2Ray()
         }
     }
@@ -234,7 +242,11 @@ class VpnService : AndroidVpnService(), ServiceControl {
             sendFd()
         } catch (e: Exception) {
             Timber.w(e.toString())
-            MessageUtil.sendMsg2UI(this, AppConfig.MSG_ERROR_MESSAGE, "Failed to start tun2socks: ${e.message}")
+            MessageUtil.sendMsg2UI(
+                this,
+                AppConfig.MSG_ERROR_MESSAGE,
+                "Failed to start tun2socks: ${e.message}"
+            )
         }
     }
 
@@ -260,7 +272,11 @@ class VpnService : AndroidVpnService(), ServiceControl {
                 }
                 break
             } catch (e: Exception) {
-                MessageUtil.sendMsg2UI(this@VpnService, AppConfig.MSG_ERROR_MESSAGE, "Failed to sendFd: ${e.message}")
+                MessageUtil.sendMsg2UI(
+                    this@VpnService,
+                    AppConfig.MSG_ERROR_MESSAGE,
+                    "Failed to sendFd: ${e.message}"
+                )
                 if (tries > 5) break
                 tries += 1
             }
@@ -269,15 +285,13 @@ class VpnService : AndroidVpnService(), ServiceControl {
 
     private fun scheduleBreakForAds() {
         breakForAdsTimer = Timer().apply {
-            schedule(breakForAds, TimeUnit.MINUTES.toMillis(adsInterval))
+            schedule(breakForAds, TimeUnit.MINUTES.toMillis(config.breakForAdsInterval))
         }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        config = intent?.data!!
-        adsInterval =
-            intent.getLongExtra(AppConfig.PREF_ADS_INTERVAL, AppConfig.DEFAULT_ADS_INTERVAL)
-        ServiceManager.startV2rayPoint(config)
+        config = Config.fromIntent(intent) ?: throw Exception("No config")
+        ServiceManager.startV2rayPoint(Uri.parse(config.url))
         return START_STICKY
     }
 
@@ -335,5 +349,5 @@ class VpnService : AndroidVpnService(), ServiceControl {
     }
 
     override fun getState(): ServiceState =
-        ServiceState("$config", breakForAds.scheduledExecutionTime())
+        ServiceState(config, breakForAds.scheduledExecutionTime())
 }

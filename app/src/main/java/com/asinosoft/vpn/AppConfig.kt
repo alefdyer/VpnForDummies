@@ -9,8 +9,6 @@ object AppConfig {
     val PRIVATE_POLICY: Uri = Uri.parse("https://asinosoft.ru/vpn_privacy_policy.html")
     val RATE_US: Uri = Uri.parse("market://details?id=com.asinosoft.vpn")
 
-    const val DEFAULT_ADS_INTERVAL = 60L // Интервал времени между показами рекламы (минуты)
-
     const val HTTP_PORT = 10809
     const val SOCKS_PORT = 10808
     const val PREFER_IPV6 = false
@@ -23,8 +21,7 @@ object AppConfig {
     const val UPLINK = "uplink"
     const val DOWNLINK = "downlink"
 
-    const val PREF_CONNECTION_PREFIX = "connection"
-    const val PREF_ADS_INTERVAL = "ads_interval"
+    const val PREF_SERVITOR_URL = "servitor_url"
 
     const val DELAY_TEST_URL = "https://www.gstatic.com/generate_204"
     const val DELAY_TEST_URL_2 = "https://www.google.com/generate_204"

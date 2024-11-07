@@ -18,6 +18,7 @@ import androidx.core.app.NotificationCompat
 import com.asinosoft.vpn.AppConfig
 import com.asinosoft.vpn.MainActivity
 import com.asinosoft.vpn.R
+import com.asinosoft.vpn.dto.Config
 import com.asinosoft.vpn.dto.EConfigType
 import com.asinosoft.vpn.dto.ServerConfig
 import com.asinosoft.vpn.util.MessageUtil
@@ -78,15 +79,14 @@ object ServiceManager {
         }
     }
 
-    fun startV2Ray(context: Context, config: Uri, adsInterval: Long) {
+    fun startV2Ray(context: Context, config: Config) {
         if (v2rayPoint.isRunning) {
             Timber.d("VNP service already running")
             return
         }
 
         val intent = Intent(context.applicationContext, VpnService::class.java)
-        intent.setData(config)
-        intent.putExtra(AppConfig.PREF_ADS_INTERVAL, adsInterval)
+        config.toIntent(intent)
 
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N_MR1) {
             context.startForegroundService(intent)
