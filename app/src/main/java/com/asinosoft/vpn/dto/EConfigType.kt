@@ -11,8 +11,4 @@ enum class EConfigType(val value: Int, val protocolScheme: String) {
     VLESS(5, AppConfig.VLESS),
     TROJAN(6, AppConfig.TROJAN),
     WIREGUARD(7, AppConfig.WIREGUARD);
-
-    companion object {
-        fun fromInt(value: Int) = entries.firstOrNull { it.value == value }
-    }
 }

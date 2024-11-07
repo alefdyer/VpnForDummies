@@ -3,7 +3,7 @@ package com.asinosoft.vpn.dto
 import com.google.gson.Gson
 
 data class ServiceState(
-    val config: String,
+    val config: Config,
     val adsTime: Long
 ) {
     companion object {

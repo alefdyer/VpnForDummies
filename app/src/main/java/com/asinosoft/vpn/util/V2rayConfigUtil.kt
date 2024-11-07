@@ -148,40 +148,6 @@ object V2rayConfigUtil {
         }
     }
 
-    private fun routingUserRule(userRule: String, tag: String, v2rayConfig: V2rayConfig) {
-        try {
-            if (!TextUtils.isEmpty(userRule)) {
-                //Domain
-                val rulesDomain = V2rayConfig.RoutingBean.RulesBean()
-                rulesDomain.outboundTag = tag
-                rulesDomain.domain = ArrayList()
-
-                //IP
-                val rulesIP = V2rayConfig.RoutingBean.RulesBean()
-                rulesIP.outboundTag = tag
-                rulesIP.ip = ArrayList()
-
-                userRule.split(",").map { it.trim() }.forEach {
-                    if (it.startsWith("ext:") && it.contains("geoip")) {
-                        rulesIP.ip?.add(it)
-                    } else if (Utils.isIpAddress(it) || it.startsWith("geoip:")) {
-                        rulesIP.ip?.add(it)
-                    } else if (it.isNotEmpty()) {
-                        rulesDomain.domain?.add(it)
-                    }
-                }
-                if ((rulesDomain.domain?.size ?: 0) > 0) {
-                    v2rayConfig.routing.rules.add(rulesDomain)
-                }
-                if ((rulesIP.ip?.size ?: 0) > 0) {
-                    v2rayConfig.routing.rules.add(rulesIP)
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
     private fun dns(v2rayConfig: V2rayConfig): Boolean {
         try {
             val hosts = mutableMapOf<String, Any>()

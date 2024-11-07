@@ -48,20 +48,6 @@ object ShadowsocksFmt {
         return config
     }
 
-    fun toUri(config: ServerConfig): String {
-        val outbound = config.getProxyOutbound() ?: return ""
-        val remark = "#" + Utils.urlEncode(config.remarks)
-        val pw =
-            Utils.encode("${outbound.getSecurityEncryption()}:${outbound.getPassword()}")
-        val url = String.format(
-            "%s@%s:%s",
-            pw,
-            Utils.getIpv6Address(outbound.getServerAddress()),
-            outbound.getServerPort()
-        )
-        return url + remark
-    }
-
     private fun tryResolveResolveSip002(str: String, config: ServerConfig): Boolean {
         try {
             val uri = URI(Utils.fixIllegalUrl(str))

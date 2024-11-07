@@ -21,19 +21,6 @@ object Utils {
         return extDir.absolutePath
     }
 
-
-    /**
-     * base64 encode
-     */
-    fun encode(text: String): String {
-        return try {
-            Base64.encodeToString(text.toByteArray(Charsets.UTF_8), Base64.NO_WRAP)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            ""
-        }
-    }
-
     /**
      * base64 decode
      */
@@ -65,55 +52,7 @@ object Utils {
         }
     }
 
-    fun urlEncode(url: String): String {
-        return try {
-            URLEncoder.encode(url, Charsets.UTF_8.toString())
-        } catch (e: Exception) {
-            e.printStackTrace()
-            url
-        }
-    }
-
-    fun isIpAddress(value: String): Boolean {
-        try {
-            var addr = value
-            if (addr.isEmpty() || addr.isBlank()) {
-                return false
-            }
-            //CIDR
-            if (addr.indexOf("/") > 0) {
-                val arr = addr.split("/")
-                if (arr.count() == 2 && Integer.parseInt(arr[1]) > -1) {
-                    addr = arr[0]
-                }
-            }
-
-            // "::ffff:192.168.173.22"
-            // "[::ffff:192.168.173.22]:80"
-            if (addr.startsWith("::ffff:") && '.' in addr) {
-                addr = addr.drop(7)
-            } else if (addr.startsWith("[::ffff:") && '.' in addr) {
-                addr = addr.drop(8).replace("]", "")
-            }
-
-            // addr = addr.toLowerCase()
-            val octets = addr.split('.').toTypedArray()
-            if (octets.size == 4) {
-                if (octets[3].indexOf(":") > 0) {
-                    addr = addr.substring(0, addr.indexOf(":"))
-                }
-                return isIpv4Address(addr)
-            }
-
-            // Ipv6addr [2001:abc::123]:8080
-            return isIpv6Address(addr)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return false
-        }
-    }
-
-    fun isIpv4Address(value: String): Boolean {
+    private fun isIpv4Address(value: String): Boolean {
         val regV4 =
             Regex("^([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\\.([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\\.([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\\.([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$")
         return regV4.matches(value)
@@ -130,7 +69,7 @@ object Utils {
         }
     }
 
-    fun isIpv6Address(value: String): Boolean {
+    private fun isIpv6Address(value: String): Boolean {
         var addr = value
         if (addr.indexOf("[") == 0 && addr.lastIndexOf("]") > 0) {
             addr = addr.drop(1)
@@ -148,9 +87,6 @@ object Utils {
     fun fixIllegalUrl(str: String): String = str
         .replace(" ", "%20")
         .replace("|", "%7C")
-
-    fun removeWhiteSpace(str: String?): String? =
-        str?.replace(" ", "")
 
     fun readTextFromAssets(context: Context, fileName: String): String =
         context.assets.open(fileName).bufferedReader().use {

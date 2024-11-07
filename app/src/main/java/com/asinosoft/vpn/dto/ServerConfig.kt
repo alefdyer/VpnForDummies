@@ -60,7 +60,7 @@ data class ServerConfig(
         }
     }
 
-    fun getProxyOutbound(): V2rayConfig.OutboundBean? {
+    private fun getProxyOutbound(): V2rayConfig.OutboundBean? {
         if (configType != EConfigType.CUSTOM) {
             return outboundBean
         }

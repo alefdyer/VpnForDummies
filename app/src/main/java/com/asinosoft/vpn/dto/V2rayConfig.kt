@@ -55,15 +55,6 @@ data class V2rayConfig(
         val allocate: Any? = null
     ) {
 
-        data class InSettingsBean(
-            val auth: String? = null,
-            val udp: Boolean? = null,
-            val userLevel: Int? = null,
-            val address: String? = null,
-            val port: Int? = null,
-            val network: String? = null
-        )
-
         data class SniffingBean(
             var enabled: Boolean,
             val destOverride: ArrayList<String>,
@@ -441,118 +432,6 @@ data class V2rayConfig(
             }
             return null
         }
-
-        fun getPassword(): String? {
-            if (protocol.equals(EConfigType.VMESS.name, true)
-                || protocol.equals(EConfigType.VLESS.name, true)
-            ) {
-                return settings?.vnext?.get(0)?.users?.get(0)?.id
-            } else if (protocol.equals(EConfigType.SHADOWSOCKS.name, true)
-                || protocol.equals(EConfigType.TROJAN.name, true)
-            ) {
-                return settings?.servers?.get(0)?.password
-            } else if (protocol.equals(EConfigType.SOCKS.name, true)) {
-                return settings?.servers?.get(0)?.users?.get(0)?.pass
-            } else if (protocol.equals(EConfigType.WIREGUARD.name, true)) {
-                return settings?.secretKey
-            }
-            return null
-        }
-
-        fun getSecurityEncryption(): String? {
-            return when {
-                protocol.equals(EConfigType.VMESS.name, true) -> settings?.vnext?.get(0)?.users?.get(0)?.security
-                protocol.equals(EConfigType.VLESS.name, true) -> settings?.vnext?.get(0)?.users?.get(0)?.encryption
-                protocol.equals(EConfigType.SHADOWSOCKS.name, true) -> settings?.servers?.get(0)?.method
-                else -> null
-            }
-        }
-
-        fun getTransportSettingDetails(): List<String>? {
-            if (protocol.equals(EConfigType.VMESS.name, true)
-                || protocol.equals(EConfigType.VLESS.name, true)
-                || protocol.equals(EConfigType.TROJAN.name, true)
-                || protocol.equals(EConfigType.SHADOWSOCKS.name, true)
-            ) {
-                val transport = streamSettings?.network ?: return null
-                return when (transport) {
-                    "tcp" -> {
-                        val tcpSetting = streamSettings?.tcpSettings ?: return null
-                        listOf(
-                            tcpSetting.header.type,
-                            tcpSetting.header.request?.headers?.Host?.joinToString().orEmpty(),
-                            tcpSetting.header.request?.path?.joinToString().orEmpty()
-                        )
-                    }
-
-                    "kcp" -> {
-                        val kcpSetting = streamSettings?.kcpSettings ?: return null
-                        listOf(
-                            kcpSetting.header.type,
-                            "",
-                            kcpSetting.seed.orEmpty()
-                        )
-                    }
-
-                    "ws" -> {
-                        val wsSetting = streamSettings?.wsSettings ?: return null
-                        listOf(
-                            "",
-                            wsSetting.headers.Host,
-                            wsSetting.path
-                        )
-                    }
-
-                    "httpupgrade" -> {
-                        val httpupgradeSetting = streamSettings?.httpupgradeSettings ?: return null
-                        listOf(
-                            "",
-                            httpupgradeSetting.host,
-                            httpupgradeSetting.path
-                        )
-                    }
-
-                    "splithttp" -> {
-                        val splithttpSetting = streamSettings?.splithttpSettings ?: return null
-                        listOf(
-                            "",
-                            splithttpSetting.host,
-                            splithttpSetting.path
-                        )
-                    }
-
-                    "h2" -> {
-                        val h2Setting = streamSettings?.httpSettings ?: return null
-                        listOf(
-                            "",
-                            h2Setting.host.joinToString(),
-                            h2Setting.path
-                        )
-                    }
-
-                    "quic" -> {
-                        val quicSetting = streamSettings?.quicSettings ?: return null
-                        listOf(
-                            quicSetting.header.type,
-                            quicSetting.security,
-                            quicSetting.key
-                        )
-                    }
-
-                    "grpc" -> {
-                        val grpcSetting = streamSettings?.grpcSettings ?: return null
-                        listOf(
-                            if (grpcSetting.multiMode == true) "multi" else "gun",
-                            grpcSetting.authority.orEmpty(),
-                            grpcSetting.serviceName
-                        )
-                    }
-
-                    else -> null
-                }
-            }
-            return null
-        }
     }
 
     data class DnsBean(
@@ -610,11 +489,6 @@ data class V2rayConfig(
             var bufferSize: Int? = null
         )
     }
-
-    data class FakednsBean(
-        var ipPool: String = "198.18.0.0/15",
-        var poolSize: Int = 10000
-    ) // roughly 10 times smaller than total ip pool
 
     fun getProxyOutbound(): OutboundBean? {
         outbounds.forEach { outbound ->

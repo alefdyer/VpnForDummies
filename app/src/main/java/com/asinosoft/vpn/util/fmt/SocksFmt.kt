@@ -24,13 +24,13 @@ object SocksFmt {
 
         //part decode
         val indexS = result.indexOf("@")
-        if (indexS > 0) {
-            result = Utils.decode(result.substring(0, indexS)) + result.substring(
+        result = if (indexS > 0) {
+            Utils.decode(result.substring(0, indexS)) + result.substring(
                 indexS,
                 result.length
             )
         } else {
-            result = Utils.decode(result)
+            Utils.decode(result)
         }
 
         val legacyPattern = "^(.*):(.*)@(.+?):(\\d+?)$".toRegex()
@@ -48,22 +48,5 @@ object SocksFmt {
         }
 
         return config
-    }
-
-    fun toUri(config: ServerConfig): String {
-        val outbound = config.getProxyOutbound() ?: return ""
-        val remark = "#" + Utils.urlEncode(config.remarks)
-        val pw =
-            if (outbound.settings?.servers?.get(0)?.users?.get(0)?.user != null)
-                "${outbound.settings?.servers?.get(0)?.users?.get(0)?.user}:${outbound.getPassword()}"
-            else
-                ":"
-        val url = String.format(
-            "%s@%s:%s",
-            Utils.encode(pw),
-            Utils.getIpv6Address(outbound.getServerAddress()),
-            outbound.getServerPort()
-        )
-        return url + remark
     }
 }
