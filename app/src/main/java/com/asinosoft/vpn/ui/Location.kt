@@ -1,5 +1,6 @@
 package com.asinosoft.vpn.ui
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +19,7 @@ import com.asinosoft.vpn.R
 import com.asinosoft.vpn.ui.theme.VpnForDummiesTheme
 import java.util.Locale
 
+@SuppressLint("DiscouragedApi")
 @Composable
 fun Location(country: String) {
     val context = LocalContext.current
