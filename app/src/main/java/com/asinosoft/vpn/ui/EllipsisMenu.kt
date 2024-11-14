@@ -1,13 +1,10 @@
 package com.asinosoft.vpn.ui
 
-import android.net.Uri
 import android.os.Build
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
@@ -29,13 +26,14 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.asinosoft.vpn.AppConfig
 import com.asinosoft.vpn.R
+import com.asinosoft.vpn.dto.Info
 import com.asinosoft.vpn.ui.theme.Typography
 import java.text.DateFormat
 import java.util.Date
 
 @Composable
 fun EllipsisMenu(
-    onShowUrl: (Uri) -> Unit,
+    onShowInfo: (Info) -> Unit,
     onRateUs: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -52,11 +50,10 @@ fun EllipsisMenu(
 
     var showMenu by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentSize(Alignment.TopEnd)
-    ) {
+    val licenses = Info(AppConfig.LICENSES, stringResource(R.string.licenses))
+    val policies = Info(AppConfig.PRIVATE_POLICY, stringResource(R.string.private_policy))
+
+    Box {
         IconButton(onClick = { showMenu = true }) {
             Icon(
                 imageVector = Icons.Filled.MoreVert,
@@ -70,14 +67,14 @@ fun EllipsisMenu(
                 text = { Text(stringResource(R.string.licenses)) },
                 onClick = {
                     showMenu = false
-                    onShowUrl(AppConfig.LICENSES)
+                    onShowInfo(licenses)
                 }
             )
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.private_policy)) },
                 onClick = {
                     showMenu = false
-                    onShowUrl(AppConfig.PRIVATE_POLICY)
+                    onShowInfo(policies)
                 }
             )
             DropdownMenuItem(

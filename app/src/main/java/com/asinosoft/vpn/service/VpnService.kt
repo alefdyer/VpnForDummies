@@ -284,6 +284,8 @@ class VpnService : AndroidVpnService(), ServiceControl {
     }
 
     private fun scheduleBreakForAds() {
+        if (0L == config.breakForAdsInterval) return
+
         breakForAdsTimer = Timer().apply {
             schedule(breakForAds, TimeUnit.MINUTES.toMillis(config.breakForAdsInterval))
         }

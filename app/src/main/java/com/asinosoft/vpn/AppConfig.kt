@@ -22,6 +22,7 @@ object AppConfig {
     const val DOWNLINK = "downlink"
 
     const val PREF_SERVITOR_URL = "servitor_url"
+    const val RETRY_DELAY_MS = 5000L
 
     const val DELAY_TEST_URL = "https://www.gstatic.com/generate_204"
     const val DELAY_TEST_URL_2 = "https://www.google.com/generate_204"

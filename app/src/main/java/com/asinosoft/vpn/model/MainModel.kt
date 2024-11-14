@@ -27,20 +27,19 @@ import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.remoteconfig.ktx.remoteConfig
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.TimeUnit
 
 class MainModel(private val application: Application) : AndroidViewModel(application) {
-    private val deviceId = application.myDeviceId
-    private val remoteConfig = Firebase.remoteConfig
     private val adsTimer = Timer()
     private var adsTimerTask: TimerTask? = null
 
     val config = MutableLiveData<Config>()
-    val isReady = MutableLiveData(false)
     val isRunning = MutableLiveData(false)
     val switchPosition = MutableLiveData(false)
     val testResult = MutableLiveData<String>()
@@ -59,11 +58,18 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
 
     fun startVpn() {
         Firebase.analytics.logEvent("vpn_start", Bundle.EMPTY)
-        val intent = Intent(application, StartActivity::class.java).apply {
-            putExtra("config", Gson().toJson(config.value))
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_HISTORY)
+        val config = this.config.value ?: return
+
+        if (config.breakForAdsInterval == 0L) {
+            ServiceManager.startV2Ray(application, config)
+        } else {
+            val intent = Intent(application, StartActivity::class.java).apply {
+                putExtra("config", Gson().toJson(config))
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_HISTORY)
+            }
+            application.startActivity(intent)
         }
-        application.startActivity(intent)
+
         switchPosition.postValue(true)
         message.postValue(application.getString(R.string.starting))
         error.postValue(null)
@@ -71,6 +77,7 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
 
     fun stopVpn() {
         Firebase.analytics.logEvent("vpn_stop", Bundle.EMPTY)
+
         stopTimer()
         ServiceManager.stopV2Ray(application)
         switchPosition.postValue(false)
@@ -96,29 +103,35 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     }
 
     fun retrieveConfig(activity: Activity) {
-        remoteConfig.fetchAndActivate().addOnCompleteListener(activity) { task ->
+        Timber.i("Fetch remote config")
+        Firebase.remoteConfig.fetchAndActivate().addOnCompleteListener(activity) { task ->
             if (task.isSuccessful) {
-                val servitorUrl = remoteConfig.getString(AppConfig.PREF_SERVITOR_URL)
+                Timber.d("Remote config fetched")
+                val servitorUrl = Firebase.remoteConfig.getString(AppConfig.PREF_SERVITOR_URL)
                 viewModelScope.launch { requestConfig(servitorUrl) }
             } else {
+                Timber.e("Remote config error: ${task.exception}")
                 setError(application.getString(R.string.config_error, task.exception))
             }
         }
     }
 
     private suspend fun requestConfig(servitorUrl: String) {
-        try {
+        while (null == config.value) try {
+            Timber.i("Fetch VPN config from $servitorUrl")
             val servitor = ServitorApiFactory().connect(servitorUrl)
-            Timber.w("Device ID: $deviceId")
-            val servitorConfig = servitor.getConfig(deviceId)
-            Timber.w("Config: $servitorConfig")
+            Timber.w("Device ID: ${application.myDeviceId}")
+            val servitorConfig = servitor.getConfig(application.myDeviceId)
+            Timber.w("$servitorConfig")
             config.postValue(servitorConfig)
             message.postValue(application.getString(R.string.ready_to_start))
-            isReady.postValue(true)
             error.postValue(null)
         } catch (e: Exception) {
-            Timber.e(e.message)
+            Timber.e("VPN config error: ${e.message}")
             setError(application.getString(R.string.config_error, e.message))
+            withContext(Dispatchers.IO) {
+                Thread.sleep(AppConfig.RETRY_DELAY_MS)
+            }
         }
     }
 
@@ -191,7 +204,6 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
 
         isRunning.postValue(true)
         switchPosition.postValue(true)
-        isReady.postValue(true)
         message.postValue(application.getString(R.string.started))
         error.postValue(null)
     }
