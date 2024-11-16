@@ -9,10 +9,17 @@ import androidx.compose.ui.Modifier
 import com.asinosoft.vpn.dto.Info
 
 @Composable
-fun MainView(modifier: Modifier = Modifier) {
+fun MainView(
+    modifier: Modifier = Modifier,
+    onPremiumClicked: () -> Unit = {},
+) {
     var showInfo by remember { mutableStateOf<Info?>(null) }
 
     showInfo?.let {
         InfoView(it) { showInfo = null }
-    } ?: VpnView(modifier) { showInfo = it }
+    } ?: VpnView(
+        modifier,
+        onShowInfo = { showInfo = it },
+        onPremiumClicked = onPremiumClicked
+    )
 }

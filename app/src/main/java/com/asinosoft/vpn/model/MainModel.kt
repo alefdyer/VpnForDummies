@@ -117,11 +117,13 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     }
 
     private suspend fun requestConfig(servitorUrl: String) {
+        val deviceId = application.myDeviceId
+
         while (null == config.value) try {
             Timber.i("Fetch VPN config from $servitorUrl")
             val servitor = ServitorApiFactory().connect(servitorUrl)
-            Timber.w("Device ID: ${application.myDeviceId}")
-            val servitorConfig = servitor.getConfig(application.myDeviceId)
+            Timber.w("Device ID: $deviceId")
+            val servitorConfig = servitor.getConfig(deviceId)
             Timber.w("$servitorConfig")
             config.postValue(servitorConfig)
             message.postValue(application.getString(R.string.ready_to_start))

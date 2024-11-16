@@ -1,5 +1,6 @@
 package com.asinosoft.vpn
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,8 +19,13 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             VpnForDummiesTheme {
-                MainView()
+                MainView { startSubscription() }
             }
         }
+    }
+
+    private fun startSubscription() {
+        val intent = Intent(this, SubscriptionActivity::class.java)
+        startActivity(intent)
     }
 }

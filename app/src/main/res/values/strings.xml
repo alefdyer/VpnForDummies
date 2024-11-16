@@ -23,4 +23,6 @@
     <string name="version">Version: %s.%s</string>
     <string name="last_update">Last update: %s</string>
     <string name="back">Back</string>
+    <string name="get_premium">Turn off advertisements</string>
+    <string name="offer_and_acceptance">Offer and acceptance</string>
 </resources>

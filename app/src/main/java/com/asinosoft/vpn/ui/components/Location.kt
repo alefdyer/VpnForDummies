@@ -1,4 +1,4 @@
-package com.asinosoft.vpn.ui
+package com.asinosoft.vpn.ui.components
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image

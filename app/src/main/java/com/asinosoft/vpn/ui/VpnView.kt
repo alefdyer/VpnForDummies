@@ -41,6 +41,9 @@ import com.asinosoft.vpn.R
 import com.asinosoft.vpn.dto.Config
 import com.asinosoft.vpn.dto.Info
 import com.asinosoft.vpn.model.MainModel
+import com.asinosoft.vpn.ui.components.EllipsisMenu
+import com.asinosoft.vpn.ui.components.Location
+import com.asinosoft.vpn.ui.components.PremiumButton
 import com.asinosoft.vpn.ui.theme.Typography
 import com.yandex.mobile.ads.banner.BannerAdSize
 import com.yandex.mobile.ads.banner.BannerAdView
@@ -51,7 +54,8 @@ import com.yandex.mobile.ads.common.AdRequest
 fun VpnView(
     modifier: Modifier = Modifier,
     model: MainModel = viewModel(),
-    onShowInfo: (Info) -> Unit,
+    onShowInfo: (Info) -> Unit = {},
+    onPremiumClicked: () -> Unit = {},
 ) {
     val config by model.config.observeAsState(null)
     val switchPosition by model.switchPosition.observeAsState(false)
@@ -114,13 +118,13 @@ fun VpnView(
 
                 else -> FreeVpnView(
                     modifier = Modifier.padding(paddingValues),
-                    config = it,
                     switchPosition = switchPosition,
                     timer = timer,
                     message = message,
                     error = error,
                     onStartVpn = checkPermissionAndStartV2Ray,
-                    onStopVpn = model::stopVpn
+                    onStopVpn = model::stopVpn,
+                    onPremiumClicked = onPremiumClicked,
                 )
             }
         }
@@ -188,13 +192,13 @@ fun PremiumVpnView(
 @Composable
 fun FreeVpnView(
     modifier: Modifier,
-    config: Config,
     switchPosition: Boolean = false,
     message: String? = null,
     error: String? = null,
     timer: String? = null,
     onStartVpn: () -> Unit = {},
     onStopVpn: () -> Unit = {},
+    onPremiumClicked: () -> Unit = {},
 ) {
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(focusRequester) {
@@ -212,7 +216,7 @@ fun FreeVpnView(
                 verticalArrangement = Arrangement.SpaceEvenly,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Location(config.country)
+                PremiumButton(onPremiumClicked)
 
                 message?.let { Text(text = it, color = MaterialTheme.colorScheme.onBackground) }
 
