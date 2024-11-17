@@ -25,4 +25,19 @@
     <string name="back">Back</string>
     <string name="get_premium">Turn off advertisements</string>
     <string name="offer_and_acceptance">Offer and acceptance</string>
+    <string name="subscription">Subscription</string>
+    <string name="day">day</string>
+    <string name="week">week</string>
+    <string name="month">month</string>
+    <string name="year">year</string>
+    <string name="unlimit">unlimit</string>
+    <string name="payment">payment</string>
+    <string name="payment_by_card">Payment by card</string>
+    <string name="payment_by_sberbank">Payment by Sberbank</string>
+    <string name="payment_by_sbp">Payment by SBP</string>
+    <string name="payment_by_yoomoney">Payment by YooMoney</string>
+    <string name="waiting">waiting</string>
+    <string name="canceled">canceled</string>
+    <string name="completed">completed</string>
+    <string name="ym_app_scheme">asinosoft</string>
 </resources>

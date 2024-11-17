@@ -25,4 +25,18 @@
     <string name="back">Назад</string>
     <string name="get_premium">Отключить рекламу\\nПовысить скорость</string>
     <string name="offer_and_acceptance">Договор оферты</string>
+    <string name="subscription">Подписка</string>
+    <string name="day">день</string>
+    <string name="week">неделя</string>
+    <string name="month">месяц</string>
+    <string name="year">год</string>
+    <string name="unlimit">безлимит</string>
+    <string name="payment">оплата</string>
+    <string name="payment_by_card">Оплата картой</string>
+    <string name="payment_by_sberbank">Оплата через Сбербанк</string>
+    <string name="payment_by_sbp">Оплача через СБП</string>
+    <string name="payment_by_yoomoney">Оплата через ЮMoney</string>
+    <string name="waiting">ожидание</string>
+    <string name="canceled">отменено</string>
+    <string name="completed">завершено</string>
 </resources>
