@@ -4,20 +4,13 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.unit.dp
 import com.asinosoft.vpn.dto.Order
 import com.asinosoft.vpn.dto.Payment
 import com.asinosoft.vpn.dto.Subscription
 import com.asinosoft.vpn.model.SubscriptionModel
-import com.asinosoft.vpn.ui.components.OrderInfo
-import com.asinosoft.vpn.ui.components.PaymentInfo
-import com.asinosoft.vpn.ui.components.SubscriptionMenu
+import com.asinosoft.vpn.ui.SubscriptionView
 
 class SubscriptionActivity : AppCompatActivity() {
     private val model: SubscriptionModel by viewModels()
@@ -31,18 +24,10 @@ class SubscriptionActivity : AppCompatActivity() {
         setContent {
             val order by model.order.observeAsState(null)
             val payment by model.payment.observeAsState(null)
-            val height = Modifier.height(LocalConfiguration.current.screenHeightDp.div(3).dp)
+            val qrcode by model.qrcode.observeAsState(null)
 
-            Column {
-                order?.let { OrderInfo(it, height) }
-
-                payment?.let { PaymentInfo(it, height) }
-
-                if (null == order && null == payment) {
-                    SubscriptionMenu { period ->
-                        model.createOrder(this@SubscriptionActivity, Subscription(period))
-                    }
-                }
+            SubscriptionView(order, payment, qrcode) { period ->
+                model.createOrder(Subscription(period))
             }
         }
     }
@@ -52,7 +37,7 @@ class SubscriptionActivity : AppCompatActivity() {
     }
 
     private fun confirm(payment: Payment) {
-        if (payment.status.isFinal()) {
+        if (payment.status.isComplete()) {
             finish()
         }
     }

@@ -96,6 +96,7 @@ dependencies {
     implementation(libs.timber)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+    implementation(libs.qrcode.kotlin)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
