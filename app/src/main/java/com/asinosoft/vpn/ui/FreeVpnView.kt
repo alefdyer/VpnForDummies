@@ -2,29 +2,24 @@ package com.asinosoft.vpn.ui
 
 import android.content.res.Configuration
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Switch
 import androidx.tv.material3.Text
 import com.asinosoft.vpn.R
 import com.asinosoft.vpn.ui.components.Countdown
 import com.asinosoft.vpn.ui.components.PremiumButton
+import com.asinosoft.vpn.ui.components.Switcher
 import com.yandex.mobile.ads.banner.BannerAdSize
 import com.yandex.mobile.ads.banner.BannerAdView
 import com.yandex.mobile.ads.common.AdRequest
@@ -39,11 +34,6 @@ fun FreeVpnView(
     onStopVpn: () -> Unit = {},
     onPremiumClicked: () -> Unit = {},
 ) {
-    val focusRequester = remember { FocusRequester() }
-    LaunchedEffect(focusRequester) {
-        focusRequester.requestFocus()
-    }
-
     VpnLayout(
         modifier = Modifier.fillMaxSize(),
         content = { mod ->
@@ -60,17 +50,7 @@ fun FreeVpnView(
 
                 error?.let { Text(text = it, color = MaterialTheme.colorScheme.onBackground) }
 
-                Switch(modifier = Modifier
-                    .focusRequester(focusRequester)
-                    .focusable(),
-                    checked = switchPosition,
-                    onCheckedChange = {
-                        if (it) {
-                            onStartVpn()
-                        } else {
-                            onStopVpn()
-                        }
-                    })
+                Switcher(switchPosition, onStartVpn, onStopVpn)
             }
         },
         advertisement = { modifier ->
