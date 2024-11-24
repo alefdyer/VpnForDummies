@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -20,7 +18,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Switch
@@ -34,7 +31,6 @@ import com.yandex.mobile.ads.common.AdRequest
 
 @Composable
 fun FreeVpnView(
-    modifier: Modifier = Modifier,
     switchPosition: Boolean = false,
     message: String? = null,
     error: String? = null,
@@ -48,11 +44,8 @@ fun FreeVpnView(
         focusRequester.requestFocus()
     }
 
-    val adSize = LocalConfiguration.current.screenWidthDp
-        .coerceAtMost(LocalConfiguration.current.screenHeightDp)
-
     VpnLayout(
-        modifier = modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         content = { mod ->
             Column(
                 mod.fillMaxSize(),
@@ -80,11 +73,16 @@ fun FreeVpnView(
                     })
             }
         },
-        advertisement = {
+        advertisement = { modifier ->
+            val screen = LocalConfiguration.current
+            val adSize =
+                if (screen.orientation == Configuration.ORIENTATION_PORTRAIT)
+                    screen.smallestScreenWidthDp
+                else
+                    screen.smallestScreenWidthDp.div(2)
+
             AndroidView(
-                modifier = Modifier
-                    .width(adSize.dp)
-                    .height(adSize.dp),
+                modifier = modifier.fillMaxSize(),
                 factory = {
                     BannerAdView(it).apply {
                         setAdUnitId("demo-banner-yandex")
@@ -98,19 +96,19 @@ fun FreeVpnView(
 @Composable
 fun VpnLayout(
     modifier: Modifier = Modifier,
-    advertisement: @Composable () -> Unit,
+    advertisement: @Composable (modifier: Modifier) -> Unit,
     content: @Composable (modifier: Modifier) -> Unit,
 ) {
     val screen = LocalConfiguration.current
     if (screen.orientation == Configuration.ORIENTATION_PORTRAIT) {
         Column(modifier, Arrangement.SpaceAround) {
             content(Modifier.weight(1f))
-            advertisement()
+            advertisement(Modifier.weight(1f))
         }
     } else {
         Row(modifier, Arrangement.SpaceBetween) {
-            advertisement()
-            content(Modifier.weight(1f))
+            advertisement(Modifier.weight(1f))
+            content(Modifier.weight(2f))
         }
     }
 }

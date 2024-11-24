@@ -24,7 +24,6 @@ import com.asinosoft.vpn.ui.components.Location
 
 @Composable
 fun PremiumVpnView(
-    modifier: Modifier,
     config: Config,
     switchPosition: Boolean = false,
     message: String? = null,
@@ -39,7 +38,7 @@ fun PremiumVpnView(
     }
 
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceAround
     ) {

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.VpnService
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -83,28 +84,28 @@ fun VpnView(
         if (null == config) {
             WaitingForConfig(Modifier.padding(paddingValues))
         } else config?.let {
-            when (it.breakForAdsInterval) {
-                0L -> PremiumVpnView(
-                    modifier = Modifier.padding(paddingValues),
-                    config = it,
-                    switchPosition = switchPosition,
-                    timer = timer,
-                    message = message,
-                    error = error,
-                    onStartVpn = checkPermissionAndStartV2Ray,
-                    onStopVpn = model::stopVpn
-                )
+            Box(Modifier.padding(paddingValues)) {
+                when (it.breakForAdsInterval) {
+                    0L -> PremiumVpnView(
+                        config = it,
+                        switchPosition = switchPosition,
+                        timer = timer,
+                        message = message,
+                        error = error,
+                        onStartVpn = checkPermissionAndStartV2Ray,
+                        onStopVpn = model::stopVpn
+                    )
 
-                else -> FreeVpnView(
-                    modifier = Modifier.padding(paddingValues),
-                    switchPosition = switchPosition,
-                    timer = timer,
-                    message = message,
-                    error = error,
-                    onStartVpn = checkPermissionAndStartV2Ray,
-                    onStopVpn = model::stopVpn,
-                    onPremiumClicked = onPremiumClicked,
-                )
+                    else -> FreeVpnView(
+                        switchPosition = switchPosition,
+                        timer = timer,
+                        message = message,
+                        error = error,
+                        onStartVpn = checkPermissionAndStartV2Ray,
+                        onStopVpn = model::stopVpn,
+                        onPremiumClicked = onPremiumClicked,
+                    )
+                }
             }
         }
     }
