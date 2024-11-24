@@ -3,6 +3,7 @@ package com.asinosoft.vpn.model
 import android.app.Application
 import android.graphics.Bitmap
 import android.os.Build
+import android.os.Bundle
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.AndroidViewModel
@@ -17,6 +18,7 @@ import com.asinosoft.vpn.dto.Order
 import com.asinosoft.vpn.dto.Payment
 import com.asinosoft.vpn.dto.Subscription
 import com.asinosoft.vpn.util.myDeviceId
+import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.remoteconfig.ktx.remoteConfig
 import kotlinx.coroutines.delay
@@ -51,6 +53,7 @@ class SubscriptionModel(application: Application) : AndroidViewModel(application
 
     fun createOrder(subscriptionPeriod: Subscription.Period) {
         Timber.i("Create order for $subscriptionPeriod")
+        Firebase.analytics.logEvent("subscribe_${subscriptionPeriod.toString().lowercase()}", Bundle.EMPTY)
         viewModelScope.launch { innerCreateOrder(subscriptionPeriod) }
     }
 
