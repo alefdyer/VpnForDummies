@@ -65,7 +65,7 @@ fun FreeVpnView(
                 modifier = modifier.fillMaxSize(),
                 factory = {
                     BannerAdView(it).apply {
-                        setAdUnitId("demo-banner-yandex")
+                        setAdUnitId(context.getString(R.string.yandex_banner_unit_id))
                         setAdSize(BannerAdSize.inlineSize(context, adSize, adSize))
                         loadAd(AdRequest.Builder().build())
                     }

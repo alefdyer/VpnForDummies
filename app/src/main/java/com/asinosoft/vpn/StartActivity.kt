@@ -33,7 +33,7 @@ class StartActivity : AppCompatActivity(), RewardedAdLoadListener, RewardedAdEve
         super.onCreate(savedInstanceState)
         config = Config.fromIntent(intent) ?: return finish()
         adLoader = RewardedAdLoader(this).apply {
-            val adUnitId = getString(R.string.yandex_ads_unit_id)
+            val adUnitId = getString(R.string.yandex_reward_unit_id)
             val adConfig = AdRequestConfiguration.Builder(adUnitId).build()
             setAdLoadListener(this@StartActivity)
             loadAd(adConfig)

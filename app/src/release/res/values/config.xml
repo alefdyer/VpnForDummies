@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="yandex_ads_unit_id" translatable="false">R-M-11844068-1</string>
+    <string name="yandex_reward_unit_id" translatable="false">R-M-13031409-1</string>
+    <string name="yandex_banner_unit_id" translatable="false">R-M-13031409-2</string>
 </resources>
