@@ -49,36 +49,44 @@ class SubscriptionModel(application: Application) : AndroidViewModel(application
         ServitorApiFactory().connect(Firebase.remoteConfig.getString(AppConfig.PREF_SERVITOR_URL))
     }
 
-    fun createOrder(subscription: Subscription) {
-        viewModelScope.launch { innerCreateOrder(subscription) }
+    fun createOrder(subscriptionPeriod: Subscription.Period) {
+        Timber.i("Create order for $subscriptionPeriod")
+        viewModelScope.launch { innerCreateOrder(subscriptionPeriod) }
     }
 
     fun createPayment(order: Order) {
+        Timber.i("Create payment for ${order.id}")
         viewModelScope.launch { innerCreatePayment(order) }
     }
 
-    private suspend fun innerCreateOrder(subscription: Subscription) {
-        while (_order.value == null) {
+    private suspend fun innerCreateOrder(subscriptionPeriod: Subscription.Period) {
+        var tries = 0
+        while(_order.value == null) {
             try {
                 val order = servitor.createOrder(
                     CreateOrderRequest(
                         app.myDeviceId,
                         "${Build.MANUFACTURER} ${Build.MODEL}",
                         "subscription",
-                        subscription.period.toString().lowercase(),
+                        subscriptionPeriod.toString().lowercase(),
                     )
                 )
 
                 _order.postValue(order)
                 _error.postValue(null)
             } catch (ex: Exception) {
-                _error.postValue(ex.message)
-                delay(500)
+                Timber.e(ex)
+                if(tries++ > 5) {
+                    _error.postValue(ex.message)
+                    return
+                }
+                delay(1000)
             }
         }
     }
 
     private suspend fun innerCreatePayment(order: Order) {
+        var tries = 0
         while (_payment.value == null) {
             try {
                 val payment = servitor.createPayment(order.id)
@@ -91,8 +99,12 @@ class SubscriptionModel(application: Application) : AndroidViewModel(application
 
                 payment.confirmationUrl?.let { generateQrCode(it) }
             } catch (ex: Exception) {
-                _error.postValue(ex.message)
-                delay(500)
+                Timber.e(ex)
+                if (tries++ > 5) {
+                    _error.postValue(ex.message)
+                    return
+                }
+                delay(1000)
             }
         }
     }
@@ -100,9 +112,10 @@ class SubscriptionModel(application: Application) : AndroidViewModel(application
     private suspend fun innerCheckPayment(payment: Payment) {
         var p = payment
         while (!p.status.isFinal()) {
-            delay(1000)
+            delay(5000)
 
             try {
+                Timber.d("Check payment ${payment.id}")
                 p = servitor.checkPayment(payment.id)
                 Timber.d("Payment: $p")
                 _payment.postValue(p)
@@ -111,8 +124,8 @@ class SubscriptionModel(application: Application) : AndroidViewModel(application
                 p.confirmationUrl?.let { generateQrCode(it) }
                 Timber.d("Status = ${p.status}")
             } catch (ex: Exception) {
+                Timber.e(ex)
                 _error.postValue(ex.message)
-
             }
         }
     }

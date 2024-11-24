@@ -39,4 +39,5 @@
     <string name="waiting">ожидание</string>
     <string name="canceled">отменено</string>
     <string name="completed">завершено</string>
+    <string name="close">Закрыть</string>
 </resources>

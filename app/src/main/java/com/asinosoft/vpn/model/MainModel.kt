@@ -17,6 +17,7 @@ import androidx.lifecycle.viewModelScope
 import com.asinosoft.vpn.AppConfig
 import com.asinosoft.vpn.R
 import com.asinosoft.vpn.StartActivity
+import com.asinosoft.vpn.api.ServitorApi
 import com.asinosoft.vpn.api.ServitorApiFactory
 import com.asinosoft.vpn.dto.Config
 import com.asinosoft.vpn.dto.ServiceState
@@ -27,15 +28,16 @@ import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.remoteconfig.ktx.remoteConfig
 import com.google.gson.Gson
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.Date
 import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.TimeUnit
 
 class MainModel(private val application: Application) : AndroidViewModel(application) {
+    private lateinit var servitor: ServitorApi
     private val adsTimer = Timer()
     private var adsTimerTask: TimerTask? = null
 
@@ -108,7 +110,9 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
             if (task.isSuccessful) {
                 Timber.d("Remote config fetched")
                 val servitorUrl = Firebase.remoteConfig.getString(AppConfig.PREF_SERVITOR_URL)
-                viewModelScope.launch { requestConfig(servitorUrl) }
+                Timber.i("Fetch VPN config from $servitorUrl")
+                servitor = ServitorApiFactory().connect(servitorUrl)
+                viewModelScope.launch { requestConfig() }
             } else {
                 Timber.e("Remote config error: ${task.exception}")
                 setError(application.getString(R.string.config_error, task.exception))
@@ -116,24 +120,25 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
         }
     }
 
-    private suspend fun requestConfig(servitorUrl: String) {
+    private suspend fun requestConfig() {
         val deviceId = application.myDeviceId
+        Timber.w("Device ID: $deviceId")
 
-        while (null == config.value) try {
-            Timber.i("Fetch VPN config from $servitorUrl")
-            val servitor = ServitorApiFactory().connect(servitorUrl)
-            Timber.w("Device ID: $deviceId")
+        while (true) try {
             val servitorConfig = servitor.getConfig(deviceId)
             Timber.w("$servitorConfig")
             config.postValue(servitorConfig)
             message.postValue(application.getString(R.string.ready_to_start))
             error.postValue(null)
+
+            servitorConfig.subscription?.let {
+                startTimer(it.endAt.time)
+            }
+            break
         } catch (e: Exception) {
             Timber.e("VPN config error: ${e.message}")
             setError(application.getString(R.string.config_error, e.message))
-            withContext(Dispatchers.IO) {
-                Thread.sleep(AppConfig.RETRY_DELAY_MS)
-            }
+            delay(AppConfig.RETRY_DELAY_MS)
         }
     }
 
@@ -181,23 +186,37 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
 
     private fun startTimer(till: Long) {
         adsTimerTask?.cancel()
+        adsTimerTask = null
 
-        adsTimerTask = object : TimerTask() {
-            override fun run() {
-                val seconds = TimeUnit.MILLISECONDS.toSeconds(till - System.currentTimeMillis())
-                    .coerceAtLeast(0)
-                val time = DateUtils.formatElapsedTime(seconds)
-                timer.postValue(time)
+        val days = TimeUnit.MILLISECONDS.toDays(till - Date().time).toInt()
+        if (days > 0) {
+            // Just show remained days count without timer
+            timer.postValue(application.resources.getQuantityString(R.plurals.days, days, days))
+        } else {
+            adsTimerTask = object : TimerTask() {
+                override fun run() {
+                    val seconds = TimeUnit.MILLISECONDS.toSeconds(till - System.currentTimeMillis())
+                        .coerceAtLeast(0)
+
+                    if (0L == seconds) {
+                        stopTimer()
+                    } else {
+                        val time = DateUtils.formatElapsedTime(seconds)
+                        timer.postValue(time)
+                    }
+                }
             }
-        }
 
-        adsTimer.schedule(adsTimerTask, 0L, TimeUnit.SECONDS.toMillis(1))
+            adsTimer.schedule(adsTimerTask, 0L, TimeUnit.SECONDS.toMillis(1))
+        }
     }
 
     private fun stopTimer() {
         adsTimerTask?.cancel()
         adsTimerTask = null
         timer.postValue(null)
+
+        viewModelScope.launch { requestConfig() }
     }
 
     private fun onVpnRunning(serviceState: ServiceState) {

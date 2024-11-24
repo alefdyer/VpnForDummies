@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 import java.lang.ref.SoftReference
+import java.util.Date
 import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.TimeUnit
@@ -272,23 +273,23 @@ class VpnService : AndroidVpnService(), ServiceControl {
                 }
                 break
             } catch (e: Exception) {
-                MessageUtil.sendMsg2UI(
-                    this@VpnService,
-                    AppConfig.MSG_ERROR_MESSAGE,
-                    "Failed to sendFd: ${e.message}"
-                )
-                if (tries > 5) break
+                if (tries > 5) {
+                    MessageUtil.sendMsg2UI(
+                        this@VpnService,
+                        AppConfig.MSG_ERROR_MESSAGE,
+                        "Failed to sendFd: ${e.message}"
+                    )
+                }
                 tries += 1
             }
         }
     }
 
     private fun scheduleBreakForAds() {
-        if (0L == config.breakForAdsInterval) return
+        val adsTime: Long = config.subscription?.endAt?.time?.let { it - Date().time }
+            ?: TimeUnit.MINUTES.toMillis(config.breakForAdsInterval)
 
-        breakForAdsTimer = Timer().apply {
-            schedule(breakForAds, TimeUnit.MINUTES.toMillis(config.breakForAdsInterval))
-        }
+        breakForAdsTimer = Timer().apply { schedule(breakForAds, adsTime) }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

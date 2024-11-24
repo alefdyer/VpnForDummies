@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,9 +17,11 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.asinosoft.vpn.R
 import com.asinosoft.vpn.dto.Order
 import com.asinosoft.vpn.dto.Payment
 import com.asinosoft.vpn.dto.Subscription
@@ -37,6 +40,7 @@ fun SubscriptionView(
     qrcode: ImageBitmap? = null,
     error: String? = null,
     onCreateOrder: (Subscription.Period) -> Unit = {},
+    onClose: () -> Unit = {},
 ) {
     val height = Modifier.height(LocalConfiguration.current.screenHeightDp.div(5).dp)
 
@@ -59,6 +63,10 @@ fun SubscriptionView(
                     color = Color.Red,
                     textAlign = TextAlign.Center
                 )
+
+                Button (onClick = onClose) {
+                    Text(stringResource(R.string.close))
+                }
             }
 
             if (null == error) {

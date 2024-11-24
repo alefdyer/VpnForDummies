@@ -8,7 +8,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import com.asinosoft.vpn.dto.Order
 import com.asinosoft.vpn.dto.Payment
-import com.asinosoft.vpn.dto.Subscription
 import com.asinosoft.vpn.model.SubscriptionModel
 import com.asinosoft.vpn.ui.SubscriptionView
 
@@ -25,10 +24,16 @@ class SubscriptionActivity : AppCompatActivity() {
             val order by model.order.observeAsState(null)
             val payment by model.payment.observeAsState(null)
             val qrcode by model.qrcode.observeAsState(null)
+            val error by model.error.observeAsState(null)
 
-            SubscriptionView(order, payment, qrcode) { period ->
-                model.createOrder(Subscription(period))
-            }
+            SubscriptionView(
+                order,
+                payment,
+                qrcode,
+                error,
+                onCreateOrder = { period -> model.createOrder(period) },
+                onClose = { finish() }
+            )
         }
     }
 

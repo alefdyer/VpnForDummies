@@ -7,7 +7,8 @@ data class Config(
     val url: String,
     val country: String,
     val location: String?,
-    val breakForAdsInterval: Long,
+    val breakForAdsInterval: Long = 0,
+    val subscription: Subscription? = null,
 ) {
     private fun toJson(): String = Gson().toJson(this)
 

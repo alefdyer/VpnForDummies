@@ -11,6 +11,7 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -41,6 +42,7 @@ import com.asinosoft.vpn.R
 import com.asinosoft.vpn.dto.Config
 import com.asinosoft.vpn.dto.Info
 import com.asinosoft.vpn.model.MainModel
+import com.asinosoft.vpn.ui.components.Countdown
 import com.asinosoft.vpn.ui.components.EllipsisMenu
 import com.asinosoft.vpn.ui.components.Location
 import com.asinosoft.vpn.ui.components.PremiumButton
@@ -110,6 +112,7 @@ fun VpnView(
                     modifier = Modifier.padding(paddingValues),
                     config = it,
                     switchPosition = switchPosition,
+                    timer = timer,
                     message = message,
                     error = error,
                     onStartVpn = checkPermissionAndStartV2Ray,
@@ -156,6 +159,7 @@ fun PremiumVpnView(
     switchPosition: Boolean = false,
     message: String? = null,
     error: String? = null,
+    timer: String? = null,
     onStartVpn: () -> Unit = {},
     onStopVpn: () -> Unit = {},
 ) {
@@ -169,7 +173,11 @@ fun PremiumVpnView(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceAround
     ) {
-        Location(config.country)
+        Row {
+            Location(config.country)
+            Spacer(Modifier.width(16.dp))
+            timer?.let { Countdown(it) }
+        }
 
         message?.let { Text(text = it, color = MaterialTheme.colorScheme.onBackground) }
 
@@ -220,7 +228,7 @@ fun FreeVpnView(
 
                 message?.let { Text(text = it, color = MaterialTheme.colorScheme.onBackground) }
 
-                timer?.let { Text(text = it, color = MaterialTheme.colorScheme.onBackground) }
+                timer?.let { Countdown(it) }
 
                 error?.let { Text(text = it, color = MaterialTheme.colorScheme.onBackground) }
 
