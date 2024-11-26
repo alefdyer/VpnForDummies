@@ -27,7 +27,6 @@ class MainActivity : ComponentActivity() {
         Firebase.remoteConfig.fetchAndActivate().addOnCompleteListener {
             Timber.d("Config fetched")
             val servitorUrl = Firebase.remoteConfig.getString(AppConfig.PREF_SERVITOR_URL)
-                .replace("https://", "http://")
             model.retrieveConfig(servitorUrl)
         }.addOnFailureListener { e ->
             Timber.e("Couldn't fetch remote config: $e")
