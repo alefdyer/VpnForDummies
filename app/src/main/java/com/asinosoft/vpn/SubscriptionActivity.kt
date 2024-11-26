@@ -1,5 +1,6 @@
 package com.asinosoft.vpn
 
+import android.app.Activity
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -46,7 +47,7 @@ class SubscriptionActivity : AppCompatActivity() {
 
     private fun confirm(payment: Payment) {
         if (payment.status.isComplete()) {
-            finish()
+            finishActivity(Activity.RESULT_OK)
         }
     }
 }

@@ -48,12 +48,16 @@ class SubscriptionModel(application: Application) : AndroidViewModel(application
         get() = _error
 
     private val servitor by lazy {
-        ServitorApiFactory().connect(Firebase.remoteConfig.getString(AppConfig.PREF_SERVITOR_URL))
+        val servitorUrl = Firebase.remoteConfig.getString(AppConfig.PREF_SERVITOR_URL)
+        ServitorApiFactory().connect(servitorUrl)
     }
 
     fun createOrder(subscriptionPeriod: Subscription.Period) {
         Timber.i("Create order for $subscriptionPeriod")
-        Firebase.analytics.logEvent("subscribe_${subscriptionPeriod.toString().lowercase()}", Bundle.EMPTY)
+        Firebase.analytics.logEvent(
+            "subscribe_${subscriptionPeriod.toString().lowercase()}",
+            Bundle.EMPTY
+        )
         viewModelScope.launch { innerCreateOrder(subscriptionPeriod) }
     }
 
@@ -64,7 +68,7 @@ class SubscriptionModel(application: Application) : AndroidViewModel(application
 
     private suspend fun innerCreateOrder(subscriptionPeriod: Subscription.Period) {
         var tries = 0
-        while(_order.value == null) {
+        while (_order.value == null) {
             try {
                 val order = servitor.createOrder(
                     CreateOrderRequest(
@@ -79,7 +83,7 @@ class SubscriptionModel(application: Application) : AndroidViewModel(application
                 _error.postValue(null)
             } catch (ex: Exception) {
                 Timber.e(ex)
-                if(tries++ > 5) {
+                if (tries++ > 5) {
                     _error.postValue(ex.message)
                     return
                 }

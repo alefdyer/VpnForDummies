@@ -7,11 +7,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
@@ -30,11 +27,6 @@ fun PremiumVpnView(
     onStartVpn: () -> Unit = {},
     onStopVpn: () -> Unit = {},
 ) {
-    val focusRequester = remember { FocusRequester() }
-    LaunchedEffect(focusRequester) {
-        focusRequester.requestFocus()
-    }
-
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,

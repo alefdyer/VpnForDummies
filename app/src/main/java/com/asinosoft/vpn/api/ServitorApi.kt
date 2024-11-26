@@ -25,7 +25,7 @@ interface ServitorApi {
         @Path("orderId") orderId: String,
     ): Payment
 
-    @POST("payment/{paymentId}/check")
+    @GET("payment/{paymentId}")
     suspend fun checkPayment(
         @Path("paymentId") paymentId: String,
     ): Payment
