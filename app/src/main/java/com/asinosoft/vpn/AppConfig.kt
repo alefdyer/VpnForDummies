@@ -7,7 +7,7 @@ object AppConfig {
     const val PACKAGE = "com.asinosoft.vpn"
     val LICENSES: Uri = Uri.parse("file:///android_asset/licenses.html")
     val PRIVATE_POLICY: Uri = Uri.parse("https://asinosoft.ru/vpn_privacy_policy.html")
-    val OFFER_AND_ACCEPTANCE: Uri = Uri.parse("file:///android_asset/offer.html")
+    val OFFER_AND_ACCEPTANCE: Uri = Uri.parse("https://asinosoft.ru/vpn_public_offer_ru.html")
     val RATE_US: Uri = Uri.parse("market://details?id=com.asinosoft.vpn")
 
     const val HTTP_PORT = 10809
