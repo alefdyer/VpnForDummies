@@ -10,6 +10,7 @@ import com.asinosoft.vpn.dto.Order
 import com.asinosoft.vpn.dto.Payment
 import com.asinosoft.vpn.model.SubscriptionModel
 import com.asinosoft.vpn.ui.SubscriptionView
+import com.asinosoft.vpn.ui.theme.VpnForDummiesTheme
 
 class SubscriptionActivity : AppCompatActivity() {
     private val model: SubscriptionModel by viewModels()
@@ -26,14 +27,16 @@ class SubscriptionActivity : AppCompatActivity() {
             val qrcode by model.qrcode.observeAsState(null)
             val error by model.error.observeAsState(null)
 
-            SubscriptionView(
-                order,
-                payment,
-                qrcode,
-                error,
-                onCreateOrder = { period -> model.createOrder(period) },
-                onClose = { finish() }
-            )
+            VpnForDummiesTheme {
+                SubscriptionView(
+                    order,
+                    payment,
+                    qrcode,
+                    error,
+                    onCreateOrder = { period -> model.createOrder(period) },
+                    onClose = { finishActivity(Activity.RESULT_CANCELED) }
+                )
+            }
         }
     }
 

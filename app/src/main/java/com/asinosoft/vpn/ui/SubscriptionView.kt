@@ -1,18 +1,20 @@
 package com.asinosoft.vpn.ui
 
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
@@ -28,6 +30,7 @@ import com.asinosoft.vpn.dto.Subscription
 import com.asinosoft.vpn.ui.components.OrderInfo
 import com.asinosoft.vpn.ui.components.SubscriptionMenu
 import com.asinosoft.vpn.ui.theme.Typography
+import com.asinosoft.vpn.ui.theme.VpnForDummiesTheme
 import qrcode.QRCode
 import timber.log.Timber
 import java.math.BigDecimal
@@ -45,7 +48,7 @@ fun SubscriptionView(
     val height = Modifier.height(LocalConfiguration.current.screenHeightDp.div(5).dp)
 
     Column(
-        modifier = Modifier.padding(16.dp),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         order?.let { order ->
@@ -60,11 +63,11 @@ fun SubscriptionView(
                     error,
                     modifier = Modifier.fillMaxWidth(),
                     style = Typography.headlineSmall,
-                    color = Color.Red,
+                    color = MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center
                 )
 
-                Button (onClick = onClose) {
+                Button(onClick = onClose) {
                     Text(stringResource(R.string.close))
                 }
             }
@@ -90,7 +93,7 @@ fun SubscriptionView(
     }
 }
 
-@Preview(showSystemUi = true, locale = "ru")
+@Preview(showSystemUi = true, locale = "ru", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun PreviewSubscriptionView() {
     val order = Order(
@@ -119,10 +122,12 @@ fun PreviewSubscriptionView() {
         .render()
         .nativeImage() as Bitmap
 
-    SubscriptionView(
-        order,
-        payment,
-        qrcode.asImageBitmap(),
-        " Failed to choose config with EGL_SWAP_BEHAVIOR_PRESERVED, retrying without...",
-    )
+    VpnForDummiesTheme {
+        SubscriptionView(
+            order,
+            payment,
+            qrcode.asImageBitmap(),
+            " Failed to choose config with EGL_SWAP_BEHAVIOR_PRESERVED, retrying without...",
+        )
+    }
 }
