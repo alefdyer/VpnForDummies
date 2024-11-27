@@ -3,6 +3,7 @@ package com.asinosoft.vpn.ui
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -48,7 +49,7 @@ fun SubscriptionView(
     val height = Modifier.height(LocalConfiguration.current.screenHeightDp.div(5).dp)
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         order?.let { order ->
@@ -82,7 +83,7 @@ fun SubscriptionView(
                 }
             }
 
-            if (null != error && null == qrcode) {
+            if (null == error && null == qrcode) {
                 CircularProgressIndicator()
             }
         }
@@ -126,8 +127,6 @@ fun PreviewSubscriptionView() {
         SubscriptionView(
             order,
             payment,
-            qrcode.asImageBitmap(),
-            " Failed to choose config with EGL_SWAP_BEHAVIOR_PRESERVED, retrying without...",
         )
     }
 }

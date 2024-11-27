@@ -40,7 +40,7 @@ fun Location(country: String) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewLocation() {
-    VpnForDummiesTheme(isInDarkTheme = false) {
+    VpnForDummiesTheme {
         Column {
             Location("af")
             Location("fi")

@@ -1,6 +1,7 @@
 package com.asinosoft.vpn.ui.components
 
 import android.content.res.Configuration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -62,7 +64,7 @@ private fun HorizontalSubscriptionMenu(
     onShowInfo: () -> Unit = {},
 ) {
     Column(
-        Modifier.fillMaxSize(),
+        Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
         Arrangement.SpaceAround,
         Alignment.CenterHorizontally
     ) {
@@ -176,7 +178,7 @@ private fun VerticalSubscriptionMenu(
 )
 @Composable
 fun PreviewSubscriptionMenu() {
-    VpnForDummiesTheme(isInDarkTheme = true) {
+    VpnForDummiesTheme {
         SubscriptionMenu {}
     }
 }
