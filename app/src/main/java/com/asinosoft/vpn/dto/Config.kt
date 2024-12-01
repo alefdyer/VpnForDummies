@@ -1,11 +1,10 @@
 package com.asinosoft.vpn.dto
 
 import android.content.Intent
-import android.net.Uri
 import com.google.gson.Gson
 
 data class Config(
-    val url: Uri,
+    val url: String,
     val country: String,
     val location: String?,
     val breakForAdsInterval: Long = 0,

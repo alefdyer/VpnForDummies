@@ -1,5 +1,6 @@
 package com.asinosoft.vpn.ui.components
 
+import android.net.Uri
 import android.os.Build
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -128,7 +129,7 @@ fun EllipsisMenu(
                     .align(Alignment.End)
                     .padding(16.dp, 0.dp)
             )
-            config?.url?.fragment?.let {
+            Uri.parse(config?.url).fragment?.let {
                 Text(
                     text = stringResource(R.string.server, it),
                     style = Typography.bodyMedium,
