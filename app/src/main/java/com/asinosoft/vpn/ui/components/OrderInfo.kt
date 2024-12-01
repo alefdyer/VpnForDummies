@@ -1,12 +1,12 @@
 package com.asinosoft.vpn.ui.components
 
 import android.content.res.Configuration
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
@@ -21,20 +21,25 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import com.asinosoft.vpn.R
 import com.asinosoft.vpn.dto.Order
+import com.asinosoft.vpn.dto.PreviewOrderProvider
 import com.asinosoft.vpn.ui.theme.Golden
 import com.asinosoft.vpn.ui.theme.Typography
-import com.asinosoft.vpn.ui.theme.VpnForDummiesTheme
-import java.math.BigDecimal
-import java.util.Currency
-import java.util.UUID
 
+@Preview(
+    showBackground = true,
+    locale = "ru",
+    widthDp = 400,
+    heightDp = 400,
+    uiMode = Configuration.UI_MODE_NIGHT_NO
+)
 @Composable
 fun OrderInfo(
+    @PreviewParameter(PreviewOrderProvider::class)
     order: Order,
-    modifier: Modifier = Modifier,
 ) {
     val period = when (order.content.period) {
         "day" -> pluralStringResource(R.plurals.days, 1, 1)
@@ -46,7 +51,9 @@ fun OrderInfo(
 
     CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
         Column(
-            modifier.fillMaxWidth(),
+            Modifier
+                .fillMaxWidth()
+                .height(240.dp),
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -60,51 +67,8 @@ fun OrderInfo(
 
             Text(text = "На $period", style = Typography.titleMedium)
 
-            Text(text = "${order.sum} ${order.currency.symbol}", style = Typography.titleMedium)
+            val sum = stringResource(R.string.sum, order.sum, order.currency.symbol)
+            Text(text = sum, style = Typography.titleMedium)
         }
-    }
-}
-
-@Preview(
-    showBackground = true,
-    locale = "ru",
-    widthDp = 400,
-    heightDp = 400,
-    uiMode = Configuration.UI_MODE_NIGHT_NO
-)
-@Composable
-fun PreviewOrderInfo() {
-    val order = Order(
-        id = UUID.randomUUID().toString(),
-        item = "subscription",
-        content = Order.Content(period = "month"),
-        sum = BigDecimal("299.00"),
-        currency = Currency.getInstance("RUB")
-    )
-
-    VpnForDummiesTheme {
-        OrderInfo(order)
-    }
-}
-
-@Preview(
-    showBackground = true,
-    locale = "ru",
-    widthDp = 400,
-    heightDp = 400,
-    uiMode = Configuration.UI_MODE_NIGHT_YES
-)
-@Composable
-fun PreviewOrderInfoNightly() {
-    val order = Order(
-        id = UUID.randomUUID().toString(),
-        item = "subscription",
-        content = Order.Content(period = "month"),
-        sum = BigDecimal("299.00"),
-        currency = Currency.getInstance("RUB")
-    )
-
-    VpnForDummiesTheme {
-        OrderInfo(order)
     }
 }

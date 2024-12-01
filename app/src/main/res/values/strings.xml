@@ -40,4 +40,10 @@
     <string name="canceled">canceled</string>
     <string name="completed">completed</string>
     <string name="close">Close</string>
+    <string name="pay">Pay</string>
+    <string name="error">Error: %s</string>
+    <string name="paid">Paid</string>
+    <string name="enter_email_prompt">Email to receive purchase receipt</string>
+    <string name="payment_error">Payment incomplete</string>
+    <string name="sum">%.2f %s</string>
 </resources>

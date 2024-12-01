@@ -40,4 +40,10 @@
     <string name="canceled">отменено</string>
     <string name="completed">завершено</string>
     <string name="close">Закрыть</string>
+    <string name="pay">Оплатить</string>
+    <string name="error">Ошибка: %s</string>
+    <string name="paid">Оплачено</string>
+    <string name="enter_email_prompt">Укажите Email для получения электронного чека</string>
+    <string name="payment_error">Оплата не завершена</string>
+    <string name="sum">%.2f %s</string>
 </resources>

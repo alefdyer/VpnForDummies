@@ -1,132 +1,230 @@
 package com.asinosoft.vpn.ui
 
-import android.content.res.Configuration
-import android.graphics.Bitmap
+import android.content.Intent
+import android.net.Uri
+import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.asinosoft.vpn.R
 import com.asinosoft.vpn.dto.Order
 import com.asinosoft.vpn.dto.Payment
-import com.asinosoft.vpn.dto.Subscription
+import com.asinosoft.vpn.dto.PreviewOrderProvider
+import com.asinosoft.vpn.model.SubscriptionModel
+import com.asinosoft.vpn.model.SubscriptionUiState
+import com.asinosoft.vpn.ui.components.EmailTextField
 import com.asinosoft.vpn.ui.components.OrderInfo
 import com.asinosoft.vpn.ui.components.SubscriptionMenu
+import com.asinosoft.vpn.ui.theme.DarkGreen
 import com.asinosoft.vpn.ui.theme.Typography
-import com.asinosoft.vpn.ui.theme.VpnForDummiesTheme
-import qrcode.QRCode
+import kotlinx.coroutines.delay
 import timber.log.Timber
-import java.math.BigDecimal
-import java.util.Currency
 
 @Composable
 fun SubscriptionView(
-    order: Order? = null,
-    payment: Payment? = null,
-    qrcode: ImageBitmap? = null,
-    error: String? = null,
-    onCreateOrder: (Subscription.Period) -> Unit = {},
-    onClose: () -> Unit = {},
+    model: SubscriptionModel = viewModel(),
+    onClose: (succeed: Boolean) -> Unit = {},
 ) {
-    val height = Modifier.height(LocalConfiguration.current.screenHeightDp.div(5).dp)
+    val stateFlow by model.state.collectAsState()
 
+    when (val state = stateFlow) {
+        is SubscriptionUiState.SelectSubscription -> SubscriptionMenu(model::createOrder)
+        is SubscriptionUiState.WaitForOrder -> WaitForOrder(state.order)
+        is SubscriptionUiState.EnterEmail -> EnterEmail(state.order, model::createPayment)
+        is SubscriptionUiState.WaitForQrCode -> WaitForOrder(state.order)
+        is SubscriptionUiState.WaitForPayment -> WaitForPayment(
+            state.order, state.payment, state.qrcode
+        )
+
+        is SubscriptionUiState.Success -> SuccessView(state.order) { onClose(true) }
+        is SubscriptionUiState.Error -> ErrorView(state.message, state.order) { onClose(false) }
+    }
+}
+
+@Preview(locale = "ru")
+@Composable
+fun WaitForOrder(
+    @PreviewParameter(PreviewOrderProvider::class) order: Order
+) {
     Column(
-        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        order?.let { order ->
-            OrderInfo(order, height)
+        OrderInfo(order)
 
-            if (null == payment) {
-                CircularProgressIndicator()
-            }
+        CircularProgressIndicator()
+    }
+}
 
-            error?.let { error ->
-                Text(
-                    error,
-                    modifier = Modifier.fillMaxWidth(),
-                    style = Typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.error,
-                    textAlign = TextAlign.Center
-                )
+@Preview(locale = "ru")
+@Composable
+fun EnterEmail(
+    @PreviewParameter(PreviewOrderProvider::class) order: Order,
+    onEmailEntered: (order: Order, email: String) -> Unit = { _, _ -> },
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        var email by rememberSaveable { mutableStateOf("") }
+        val send = { onEmailEntered(order, email) }
 
-                Button(onClick = onClose) {
-                    Text(stringResource(R.string.close))
-                }
-            }
+        OrderInfo(order)
 
-            if (null == error) {
-                qrcode?.let { qrcode ->
-                    Image(
-                        qrcode,
-                        contentDescription = "Qr Code",
-                        modifier = Modifier.padding(40.dp)
-                    )
-                }
-            }
+        Text(
+            stringResource(R.string.enter_email_prompt),
+            style = Typography.labelLarge,
+        )
 
-            if (null == error && null == qrcode) {
-                CircularProgressIndicator()
-            }
-        }
+        EmailTextField(
+            email = email,
+            onValueChange = { email = it },
+            onSend = send,
+        )
 
-        if (null == order) {
-            SubscriptionMenu(onCreateOrder)
+        Button(
+            onClick = send,
+            enabled = Patterns.EMAIL_ADDRESS.matcher(email).matches(),
+            modifier = Modifier.padding(16.dp),
+        ) {
+            Text(stringResource(R.string.pay))
         }
     }
 }
 
-@Preview(showSystemUi = true, locale = "ru", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(locale = "ru")
 @Composable
-fun PreviewSubscriptionView() {
-    val order = Order(
-        "9d82a8fe-c795-4758-af2b-ace42f6ab936",
-        "subscription",
-        Order.Content("month"),
-        BigDecimal("234.56"),
-        Currency.getInstance("RUB")
-    )
+fun SuccessView(
+    @PreviewParameter(PreviewOrderProvider::class)
+    order: Order,
+    onClose: () -> Unit = {},
+) {
+    LaunchedEffect(order) {
+        Timber.d("SuccessView Launched")
+        delay(3000)
+        onClose()
+    }
 
-    val payment = Payment(
-        "9d83f51b-3ebb-4581-8368-e5fe5ec566e6",
-        BigDecimal("234.56"),
-        Currency.getInstance("RUB"),
-        Payment.Status.WAITING,
-        "https://api.yookassa.ru/v3"
-    )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        OrderInfo(order)
 
-    val logo = LocalContext.current.classLoader.getResourceAsStream("/res/drawable/ic_yookassa.png")
-        ?.readBytes()
-    Timber.d("Logo size ${logo?.size}")
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Image(
+                imageVector = Icons.Rounded.Check,
+                modifier = Modifier.size(24.dp),
+                contentDescription = "Success",
+                colorFilter = ColorFilter.tint(DarkGreen),
+            )
 
-    val qrcode = QRCode.ofCircles()
-        .withLogo(logo, 92, 92)
-        .build("https://asinosoft.ru/vpn.html")
-        .render()
-        .nativeImage() as Bitmap
+            Text(
+                text = stringResource(R.string.paid),
+                style = Typography.titleMedium,
+            )
+        }
+    }
+}
 
-    VpnForDummiesTheme {
-        SubscriptionView(
-            order,
-            payment,
+@Composable
+fun ErrorView(
+    error: String,
+    order: Order? = null,
+    onClose: () -> Unit = {},
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        order?.let { OrderInfo(it) }
+
+        Text(
+            error,
+            modifier = Modifier.fillMaxWidth(),
+            style = Typography.headlineSmall,
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(Modifier.height(24.dp))
+
+        Button(onClick = onClose) {
+            Text(stringResource(R.string.close))
+        }
+    }
+}
+
+@Composable
+fun WaitForPayment(
+    order: Order?,
+    payment: Payment,
+    qrcode: ImageBitmap,
+) {
+    val context = LocalContext.current
+    val openBrowser =
+        { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(payment.confirmationUrl))) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        order?.let { OrderInfo(it) }
+
+        Image(
+            qrcode,
+            contentDescription = "Qr Code",
+            modifier = Modifier.padding(40.dp)
+        )
+
+        Text(
+            stringResource(R.string.pay), modifier = Modifier.clickable(
+                onClick = openBrowser, role = Role.Button
+            )
         )
     }
+
 }

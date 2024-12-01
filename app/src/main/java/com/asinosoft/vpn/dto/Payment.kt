@@ -22,8 +22,8 @@ data class Payment(
         @SerializedName("waiting")
         WAITING,
 
-        @SerializedName("completed")
-        COMPLETED,
+        @SerializedName("succeeded")
+        SUCCEEDED,
 
         @SerializedName("canceled")
         CANCELED,
@@ -31,8 +31,6 @@ data class Payment(
         @SerializedName("refunded")
         REFUNDED;
 
-        fun isComplete() = this == COMPLETED
-
-        fun isFinal() = this == COMPLETED || this == CANCELED || this == REFUNDED
+        fun isFinal() = this == SUCCEEDED || this == CANCELED || this == REFUNDED
     }
 }

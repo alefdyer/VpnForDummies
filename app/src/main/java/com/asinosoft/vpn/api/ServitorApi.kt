@@ -23,6 +23,7 @@ interface ServitorApi {
     @POST("order/{orderId}/payment")
     suspend fun createPayment(
         @Path("orderId") orderId: String,
+        @Body data: CreatePaymentRequest
     ): Payment
 
     @GET("payment/{paymentId}")
@@ -36,4 +37,8 @@ data class CreateOrderRequest(
     val deviceModel: String,
     val item: String,
     val period: String,
+)
+
+data class CreatePaymentRequest(
+    val email: String,
 )
