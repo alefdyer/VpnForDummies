@@ -46,4 +46,6 @@
     <string name="enter_email_prompt">Email to receive purchase receipt</string>
     <string name="payment_error">Payment incomplete</string>
     <string name="sum">%.2f %s</string>
+    <string name="support_telegram">Support</string>
+    <string name="server">Server: %s</string>
 </resources>

@@ -12,4 +12,6 @@ val Pink40 = Color(0xFF7D5260)
 
 val Golden = Color(0xFFFEA500)
 
+val Telegram = Color(0xFF4F9EE6)
+
 val DarkGreen = Color(0xFF339601)

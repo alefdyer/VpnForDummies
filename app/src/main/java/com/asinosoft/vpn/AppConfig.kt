@@ -9,6 +9,7 @@ object AppConfig {
     val PRIVATE_POLICY: Uri = Uri.parse("https://asinosoft.ru/vpn_privacy_policy.html")
     val OFFER_AND_ACCEPTANCE: Uri = Uri.parse("https://asinosoft.ru/vpn_public_offer_ru.html")
     val RATE_US: Uri = Uri.parse("market://details?id=com.asinosoft.vpn")
+    val SUPPORT: Uri = Uri.parse("https://t.me/vpn_va_support")
 
     const val HTTP_PORT = 10809
     const val SOCKS_PORT = 10808

@@ -69,6 +69,8 @@ fun VpnView(
 
     val onRateUs = { context.startActivity(Intent(Intent.ACTION_VIEW, AppConfig.RATE_US)) }
 
+    val onSupport = { context.startActivity(Intent(Intent.ACTION_VIEW, AppConfig.SUPPORT)) }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
@@ -82,7 +84,7 @@ fun VpnView(
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
-                actions = { EllipsisMenu(config, onShowInfo, onRateUs) }
+                actions = { EllipsisMenu(config, onShowInfo, onRateUs, onSupport) }
             )
         }
     ) { paddingValues ->
