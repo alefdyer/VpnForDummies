@@ -82,7 +82,7 @@ fun VpnView(
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
-                actions = { EllipsisMenu(onShowInfo, onRateUs) }
+                actions = { EllipsisMenu(config, onShowInfo, onRateUs) }
             )
         }
     ) { paddingValues ->

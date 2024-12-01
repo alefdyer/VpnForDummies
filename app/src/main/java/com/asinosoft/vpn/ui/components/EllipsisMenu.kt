@@ -26,6 +26,7 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.asinosoft.vpn.AppConfig
 import com.asinosoft.vpn.R
+import com.asinosoft.vpn.dto.Config
 import com.asinosoft.vpn.dto.Info
 import com.asinosoft.vpn.ui.theme.Typography
 import java.text.DateFormat
@@ -33,6 +34,7 @@ import java.util.Date
 
 @Composable
 fun EllipsisMenu(
+    config: Config?,
     onShowInfo: (Info) -> Unit,
     onRateUs: () -> Unit,
 ) {
@@ -100,6 +102,16 @@ fun EllipsisMenu(
                     .align(Alignment.End)
                     .padding(16.dp, 0.dp)
             )
+            config?.url?.fragment?.let {
+                Text(
+                    text = it,
+                    style = Typography.bodySmall,
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .padding(16.dp, 0.dp)
+                )
+
+            }
         }
     }
 }

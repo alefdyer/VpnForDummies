@@ -294,7 +294,7 @@ class VpnService : AndroidVpnService(), ServiceControl {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         config = Config.fromIntent(intent) ?: throw Exception("No config")
-        ServiceManager.startV2rayPoint(Uri.parse(config.url))
+        ServiceManager.startV2rayPoint(config.url)
         return START_STICKY
     }
 
