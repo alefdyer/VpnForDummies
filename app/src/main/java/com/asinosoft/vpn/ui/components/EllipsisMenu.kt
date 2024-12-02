@@ -129,15 +129,17 @@ fun EllipsisMenu(
                     .align(Alignment.End)
                     .padding(16.dp, 0.dp)
             )
-            Uri.parse(config?.url).fragment?.let {
-                Text(
-                    text = stringResource(R.string.server, it),
-                    style = Typography.bodyMedium,
-                    modifier = Modifier
-                        .align(Alignment.End)
-                        .padding(16.dp, 0.dp)
-                )
+            config?.url?.let {
+                Uri.parse(it).fragment?.let {
+                    Text(
+                        text = stringResource(R.string.server, it),
+                        style = Typography.bodyMedium,
+                        modifier = Modifier
+                            .align(Alignment.End)
+                            .padding(16.dp, 0.dp)
+                    )
 
+                }
             }
         }
     }
