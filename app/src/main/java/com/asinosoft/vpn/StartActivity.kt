@@ -6,13 +6,12 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.asinosoft.vpn.dto.Config
 import com.asinosoft.vpn.service.ServiceManager
-import com.lottiefiles.dotlottie.core.compose.ui.DotLottieAnimation
-import com.lottiefiles.dotlottie.core.util.DotLottieSource
 import com.yandex.mobile.ads.common.AdError
 import com.yandex.mobile.ads.common.AdRequestConfiguration
 import com.yandex.mobile.ads.common.AdRequestError
@@ -78,11 +77,13 @@ class StartActivity : AppCompatActivity(), RewardedAdLoadListener, RewardedAdEve
     override fun onAdImpression(impressionData: ImpressionData?) {}
 
     private fun startVpn() {
+        closeAd()
         ServiceManager.startV2Ray(application, config)
         finishAndRemoveTask()
     }
 
     private fun stopVpn() {
+        closeAd()
         ServiceManager.stopV2Ray(application)
         finishAndRemoveTask()
     }
@@ -101,10 +102,6 @@ fun WaitingForTheAds() {
     Box(
         modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
     ) {
-        DotLottieAnimation(
-            source = DotLottieSource.Asset("spinner.json"),
-            autoplay = true,
-            loop = true
-        )
+        CircularProgressIndicator()
     }
 }

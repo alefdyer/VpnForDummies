@@ -2,6 +2,9 @@ package com.asinosoft.vpn.ui.components
 
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -14,9 +17,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.tv.material3.Surface
-import androidx.tv.material3.Switch
-import androidx.tv.material3.SwitchDefaults
 import com.asinosoft.vpn.ui.theme.Golden
 
 @Composable

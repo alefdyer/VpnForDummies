@@ -22,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -38,12 +37,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.asinosoft.vpn.R
 import com.asinosoft.vpn.dto.Order
 import com.asinosoft.vpn.dto.Payment
 import com.asinosoft.vpn.dto.PreviewOrderProvider
-import com.asinosoft.vpn.model.SubscriptionModel
+import com.asinosoft.vpn.dto.Subscription
 import com.asinosoft.vpn.model.SubscriptionUiState
 import com.asinosoft.vpn.ui.components.EmailTextField
 import com.asinosoft.vpn.ui.components.OrderInfo
@@ -55,15 +53,15 @@ import timber.log.Timber
 
 @Composable
 fun SubscriptionView(
-    model: SubscriptionModel = viewModel(),
+    state: SubscriptionUiState,
+    onCreateOrder: (Subscription.Period) -> Unit = {},
+    onCreatePayment: (Order, String) -> Unit = { _, _ -> },
     onClose: (succeed: Boolean) -> Unit = {},
 ) {
-    val stateFlow by model.state.collectAsState()
-
-    when (val state = stateFlow) {
-        is SubscriptionUiState.SelectSubscription -> SubscriptionMenu(model::createOrder)
+    when (state) {
+        is SubscriptionUiState.SelectSubscription -> SubscriptionMenu(onCreateOrder)
         is SubscriptionUiState.WaitForOrder -> WaitForOrder(state.order)
-        is SubscriptionUiState.EnterEmail -> EnterEmail(state.order, model::createPayment)
+        is SubscriptionUiState.EnterEmail -> EnterEmail(state.order, onCreatePayment)
         is SubscriptionUiState.WaitForQrCode -> WaitForOrder(state.order)
         is SubscriptionUiState.WaitForPayment -> WaitForPayment(
             state.order, state.payment, state.qrcode
