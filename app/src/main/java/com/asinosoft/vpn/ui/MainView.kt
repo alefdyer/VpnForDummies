@@ -11,6 +11,8 @@ import com.asinosoft.vpn.dto.Info
 @Composable
 fun MainView(
     modifier: Modifier = Modifier,
+    onStartVpn: () -> Unit = {},
+    onStopVpn: () -> Unit = {},
     onPremiumClicked: () -> Unit = {},
 ) {
     var showInfo by remember { mutableStateOf<Info?>(null) }
@@ -19,6 +21,8 @@ fun MainView(
         InfoView(it) { showInfo = null }
     } ?: VpnView(
         modifier,
+        onStartVpn = onStartVpn,
+        onStopVpn = onStopVpn,
         onShowInfo = { showInfo = it },
         onPremiumClicked = onPremiumClicked
     )

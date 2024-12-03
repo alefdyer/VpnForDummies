@@ -10,8 +10,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.asinosoft.vpn.dto.Config
-import com.asinosoft.vpn.service.ServiceManager
 import com.yandex.mobile.ads.common.AdError
 import com.yandex.mobile.ads.common.AdRequestConfiguration
 import com.yandex.mobile.ads.common.AdRequestError
@@ -23,15 +21,9 @@ import com.yandex.mobile.ads.rewarded.RewardedAdLoadListener
 import com.yandex.mobile.ads.rewarded.RewardedAdLoader
 
 class StartActivity : AppCompatActivity(), RewardedAdLoadListener, RewardedAdEventListener {
-    private var adLoader: RewardedAdLoader? = null
-    private var ad: RewardedAd? = null
-
-    private lateinit var config: Config
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        config = Config.fromIntent(intent) ?: return finish()
-        adLoader = RewardedAdLoader(this).apply {
+        RewardedAdLoader(this).apply {
             val adUnitId = getString(R.string.yandex_reward_unit_id)
             val adConfig = AdRequestConfiguration.Builder(adUnitId).build()
             setAdLoadListener(this@StartActivity)
@@ -47,19 +39,11 @@ class StartActivity : AppCompatActivity(), RewardedAdLoadListener, RewardedAdEve
         setContent { WaitingForTheAds() }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        closeAd()
-    }
-
     override fun onAdLoaded(rewarded: RewardedAd) {
-        ad = rewarded.apply {
+        rewarded.apply {
             setAdEventListener(this@StartActivity)
             show(this@StartActivity)
         }
-
-        adLoader?.setAdLoadListener(null)
-        adLoader = null
     }
 
     override fun onAdFailedToLoad(error: AdRequestError) = startVpn()
@@ -77,23 +61,13 @@ class StartActivity : AppCompatActivity(), RewardedAdLoadListener, RewardedAdEve
     override fun onAdImpression(impressionData: ImpressionData?) {}
 
     private fun startVpn() {
-        closeAd()
-        ServiceManager.startV2Ray(application, config)
+        setResult(RESULT_OK)
         finishAndRemoveTask()
     }
 
     private fun stopVpn() {
-        closeAd()
-        ServiceManager.stopV2Ray(application)
+        setResult(RESULT_CANCELED)
         finishAndRemoveTask()
-    }
-
-    private fun closeAd() {
-        adLoader?.setAdLoadListener(null)
-        adLoader = null
-
-        ad?.setAdEventListener(null)
-        ad = null
     }
 }
 

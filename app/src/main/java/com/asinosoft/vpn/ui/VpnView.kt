@@ -1,11 +1,6 @@
 package com.asinosoft.vpn.ui
 
-import android.app.Activity
-import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.net.VpnService
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -35,6 +30,8 @@ import com.asinosoft.vpn.ui.theme.Typography
 fun VpnView(
     modifier: Modifier = Modifier,
     model: MainModel = viewModel(),
+    onStartVpn: () -> Unit = {},
+    onStopVpn: () -> Unit = {},
     onShowInfo: (Info) -> Unit = {},
     onPremiumClicked: () -> Unit = {},
 ) {
@@ -44,28 +41,6 @@ fun VpnView(
     val error by model.error.observeAsState("")
     val timer by model.timer.observeAsState("")
     val context = LocalContext.current
-
-    val requestVpnPermission =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == Activity.RESULT_OK) {
-                model.startVpn()
-            }
-        }
-
-    val checkPermissionAndStartV2Ray = {
-        val intent = VpnService.prepare(context)
-        if (intent == null) {
-            model.startVpn()
-        } else {
-            try {
-                requestVpnPermission.launch(intent)
-            } catch (e: ActivityNotFoundException) {
-                model.setError(context.getString(R.string.device_not_supported))
-            } catch (e: Throwable) {
-                model.setError(e.message)
-            }
-        }
-    }
 
     val onRateUs = { context.startActivity(Intent(Intent.ACTION_VIEW, AppConfig.RATE_US)) }
 
@@ -99,8 +74,8 @@ fun VpnView(
                         timer = timer,
                         message = message,
                         error = error,
-                        onStartVpn = checkPermissionAndStartV2Ray,
-                        onStopVpn = model::stopVpn
+                        onStartVpn = onStartVpn,
+                        onStopVpn = onStopVpn
                     )
 
                     else -> FreeVpnView(
@@ -108,8 +83,8 @@ fun VpnView(
                         timer = timer,
                         message = message,
                         error = error,
-                        onStartVpn = checkPermissionAndStartV2Ray,
-                        onStopVpn = model::stopVpn,
+                        onStartVpn = onStartVpn,
+                        onStopVpn = onStopVpn,
                         onPremiumClicked = onPremiumClicked,
                     )
                 }

@@ -15,7 +15,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.asinosoft.vpn.AppConfig
 import com.asinosoft.vpn.R
-import com.asinosoft.vpn.StartActivity
 import com.asinosoft.vpn.api.ServitorApi
 import com.asinosoft.vpn.api.ServitorApiFactory
 import com.asinosoft.vpn.dto.Config
@@ -25,7 +24,6 @@ import com.asinosoft.vpn.util.MessageUtil
 import com.asinosoft.vpn.util.myDeviceId
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
-import com.google.gson.Gson
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -57,24 +55,25 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
         error.postValue(message)
     }
 
+    fun starting() {
+        switchPosition.postValue(true)
+        message.postValue(application.getString(R.string.starting))
+        error.postValue(null)
+    }
+
+    fun stopped() {
+        switchPosition.postValue(false)
+        message.postValue(application.getString(R.string.stopped))
+        error.postValue(null)
+    }
+
     fun startVpn() {
         Timber.i("Start VPN")
         Firebase.analytics.logEvent("vpn_start", Bundle.EMPTY)
         val config = _config ?: return
 
-        if (config.breakForAdsInterval == 0L) {
-            ServiceManager.startV2Ray(application, config)
-        } else {
-            val intent = Intent(application, StartActivity::class.java).apply {
-                putExtra("config", Gson().toJson(config))
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_HISTORY)
-            }
-            application.startActivity(intent)
-        }
-
-        switchPosition.postValue(true)
-        message.postValue(application.getString(R.string.starting))
-        error.postValue(null)
+        starting()
+        ServiceManager.startV2Ray(application, config)
     }
 
     fun stopVpn() {
