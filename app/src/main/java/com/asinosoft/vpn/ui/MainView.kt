@@ -6,12 +6,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.asinosoft.vpn.dto.Config
 import com.asinosoft.vpn.dto.Info
 
 @Composable
 fun MainView(
     modifier: Modifier = Modifier,
-    onStartVpn: () -> Unit = {},
+    onStartVpn: (Config) -> Unit = {},
     onStopVpn: () -> Unit = {},
     onPremiumClicked: () -> Unit = {},
 ) {

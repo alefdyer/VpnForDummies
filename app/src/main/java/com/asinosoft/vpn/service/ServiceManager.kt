@@ -21,6 +21,7 @@ import com.asinosoft.vpn.R
 import com.asinosoft.vpn.dto.Config
 import com.asinosoft.vpn.dto.EConfigType
 import com.asinosoft.vpn.dto.ServerConfig
+import com.asinosoft.vpn.dto.putConfig
 import com.asinosoft.vpn.util.MessageUtil
 import com.asinosoft.vpn.util.Utils
 import com.asinosoft.vpn.util.V2rayConfigUtil
@@ -86,7 +87,7 @@ object ServiceManager {
         }
 
         val intent = Intent(context.applicationContext, VpnService::class.java)
-        config.toIntent(intent)
+            .putConfig(config)
 
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N_MR1) {
             context.startForegroundService(intent)
@@ -181,7 +182,7 @@ object ServiceManager {
             V2rayConfigUtil.getV2rayConfig(service, outbound, config.remarks)
         v2rayPoint.domainName = config.getV2rayPointDomainAndPort()
 
-        Timber.d("Connect to ${v2rayPoint.configureFileContent}")
+        Timber.d("Connect to ${v2rayPoint.domainName}")
 
         try {
             v2rayPoint.runLoop(false)

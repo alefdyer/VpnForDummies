@@ -24,6 +24,7 @@ import com.asinosoft.vpn.util.MessageUtil
 import com.asinosoft.vpn.util.myDeviceId
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.remoteconfig.ktx.remoteConfig
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -33,8 +34,7 @@ import java.util.TimerTask
 import java.util.concurrent.TimeUnit
 
 class MainModel(private val application: Application) : AndroidViewModel(application) {
-    private lateinit var servitor: ServitorApi
-    private var _config: Config? = null
+    private var servitor: ServitorApi? = null
     private val adsTimer = Timer()
     private var adsTimerTask: TimerTask? = null
 
@@ -46,6 +46,18 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     val error = MutableLiveData<String?>(null)
     val timer = MutableLiveData<String?>(null)
 
+    init {
+        Firebase.remoteConfig.fetchAndActivate().addOnCompleteListener {
+            val url = Firebase.remoteConfig.getString(AppConfig.PREF_SERVITOR_URL)
+            servitor = ServitorApiFactory().connect(url)
+            if (null == config.value) {
+                retrieveConfig()
+            }
+        }.addOnFailureListener { e ->
+            setError(application.getString(R.string.config_error, e))
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
         stopTimer()
@@ -55,7 +67,8 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
         error.postValue(message)
     }
 
-    fun starting() {
+    fun starting(cfg: Config) {
+        config.postValue(cfg)
         switchPosition.postValue(true)
         message.postValue(application.getString(R.string.starting))
         error.postValue(null)
@@ -67,12 +80,11 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
         error.postValue(null)
     }
 
-    fun startVpn() {
+    fun startVpn(config: Config) {
         Timber.i("Start VPN")
         Firebase.analytics.logEvent("vpn_start", Bundle.EMPTY)
-        val config = _config ?: return
 
-        starting()
+        starting(config)
         ServiceManager.startV2Ray(application, config)
     }
 
@@ -104,9 +116,8 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
         MessageUtil.sendMsg2Service(application, AppConfig.MSG_REGISTER_CLIENT)
     }
 
-    fun retrieveConfig(servitorUrl: String) {
-        Timber.i("Fetch remote config from $servitorUrl")
-        servitor = ServitorApiFactory().connect(servitorUrl)
+    fun retrieveConfig() {
+        Timber.i("Fetch remote config")
         viewModelScope.launch { requestConfig(true) }
     }
 
@@ -115,15 +126,16 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
         Timber.w("Device ID: $deviceId")
 
         while (true) try {
-            val servitorConfig = servitor.getConfig(deviceId)
-            _config = servitorConfig
+            val servitorConfig = servitor?.getConfig(deviceId)
+                ?: return setError(application.getString(R.string.config_error, "Server not found"))
+
             Timber.w("$servitorConfig")
             config.postValue(servitorConfig)
             message.postValue(application.getString(R.string.ready_to_start))
             error.postValue(null)
 
             if (autoStart && null !== servitorConfig.subscription) {
-                startVpn()
+                startVpn(servitorConfig)
             }
             break
         } catch (e: Exception) {
@@ -211,7 +223,6 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     }
 
     private fun onVpnRunning(serviceState: ServiceState) {
-        _config = serviceState.config
         config.postValue(serviceState.config)
         startTimer(serviceState.adsTime)
 
@@ -229,7 +240,6 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     }
 
     private fun onVpnStarted(serviceState: ServiceState) {
-        _config = serviceState.config
         startTimer(serviceState.adsTime)
 
         config.postValue(serviceState.config)

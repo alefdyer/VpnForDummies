@@ -19,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.asinosoft.vpn.AppConfig
 import com.asinosoft.vpn.R
+import com.asinosoft.vpn.dto.Config
 import com.asinosoft.vpn.dto.Info
 import com.asinosoft.vpn.model.MainModel
 import com.asinosoft.vpn.ui.components.EllipsisMenu
@@ -30,7 +31,7 @@ import com.asinosoft.vpn.ui.theme.Typography
 fun VpnView(
     modifier: Modifier = Modifier,
     model: MainModel = viewModel(),
-    onStartVpn: () -> Unit = {},
+    onStartVpn: (Config) -> Unit = {},
     onStopVpn: () -> Unit = {},
     onShowInfo: (Info) -> Unit = {},
     onPremiumClicked: () -> Unit = {},
@@ -74,7 +75,7 @@ fun VpnView(
                         timer = timer,
                         message = message,
                         error = error,
-                        onStartVpn = onStartVpn,
+                        onStartVpn = { onStartVpn(it) },
                         onStopVpn = onStopVpn
                     )
 
@@ -83,7 +84,7 @@ fun VpnView(
                         timer = timer,
                         message = message,
                         error = error,
-                        onStartVpn = onStartVpn,
+                        onStartVpn = { onStartVpn(it) },
                         onStopVpn = onStopVpn,
                         onPremiumClicked = onPremiumClicked,
                     )

@@ -19,6 +19,7 @@ import com.asinosoft.vpn.AppConfig
 import com.asinosoft.vpn.dto.Config
 import com.asinosoft.vpn.dto.ERoutingMode
 import com.asinosoft.vpn.dto.ServiceState
+import com.asinosoft.vpn.dto.getConfig
 import com.asinosoft.vpn.util.MessageUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -293,7 +294,7 @@ class VpnService : AndroidVpnService(), ServiceControl {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        config = Config.fromIntent(intent) ?: throw Exception("No config")
+        config = intent?.getConfig() ?: throw Exception("No config")
         ServiceManager.startV2rayPoint(Uri.parse(config.url))
         return START_STICKY
     }
