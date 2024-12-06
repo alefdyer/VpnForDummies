@@ -16,6 +16,7 @@ import com.asinosoft.vpn.dto.putConfig
 import com.asinosoft.vpn.model.MainModel
 import com.asinosoft.vpn.ui.MainView
 import com.asinosoft.vpn.ui.theme.VpnForDummiesTheme
+import timber.log.Timber
 
 class MainActivity : ComponentActivity() {
     private val model: MainModel by viewModels()
@@ -37,8 +38,14 @@ class MainActivity : ComponentActivity() {
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Timber.i("MainActivity::onCreate ${intent.extras?.keySet()?.joinToString(", ")}")
         super.onCreate(savedInstanceState)
         model.startListenBroadcast()
+        model.isRunning.observe(this) { isRunning ->
+            if (isRunning) {
+                intent.removeExtra("config")
+            }
+        }
 
         setContent {
             VpnForDummiesTheme {
@@ -52,16 +59,14 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onResume() {
+        Timber.i("MainActivity::onResume ${intent.extras?.keySet()?.joinToString(", ")}")
         super.onResume()
-
-        intent.getConfig()
-            ?.let { model.startVpn(it) }
-            ?: model.retrieveConfig()
+        intent.getConfig()?.let { model.startVpn(it) }
     }
 
     override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
-        super.onNewIntent(intent, caller)
-        setIntent(intent)
+        Timber.i("MainActivity::onNewIntent ${intent.extras?.keySet()?.joinToString(", ")}")
+        intent.getConfig()?.let { model.startVpn(it) }
     }
 
     private fun onStartVpn(config: Config) {

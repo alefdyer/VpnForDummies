@@ -25,6 +25,7 @@ import com.asinosoft.vpn.util.myDeviceId
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.remoteconfig.ktx.remoteConfig
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -50,9 +51,7 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
         Firebase.remoteConfig.fetchAndActivate().addOnCompleteListener {
             val url = Firebase.remoteConfig.getString(AppConfig.PREF_SERVITOR_URL)
             servitor = ServitorApiFactory().connect(url)
-            if (null == config.value) {
-                retrieveConfig()
-            }
+            retrieveConfig()
         }.addOnFailureListener { e ->
             setError(application.getString(R.string.config_error, e))
         }
@@ -117,8 +116,8 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     }
 
     fun retrieveConfig() {
-        Timber.i("Fetch remote config")
-        viewModelScope.launch { requestConfig(true) }
+        Timber.d("MainModel::retrieveConfig")
+        viewModelScope.launch(Dispatchers.IO) { requestConfig(true) }
     }
 
     private suspend fun requestConfig(autoStart: Boolean = false) {
@@ -128,6 +127,8 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
         while (true) try {
             val servitorConfig = servitor?.getConfig(deviceId)
                 ?: return setError(application.getString(R.string.config_error, "Server not found"))
+
+            if (true == isRunning.value) return
 
             Timber.w("$servitorConfig")
             config.postValue(servitorConfig)
@@ -215,14 +216,16 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     }
 
     private fun stopTimer() {
+        Timber.d("MainModel::stopTimer")
         adsTimerTask?.cancel()
         adsTimerTask = null
         timer.postValue(null)
 
-        viewModelScope.launch { requestConfig() }
+        viewModelScope.launch(Dispatchers.IO) { requestConfig() }
     }
 
     private fun onVpnRunning(serviceState: ServiceState) {
+        Timber.d("MainModel::onVpnRunning")
         config.postValue(serviceState.config)
         startTimer(serviceState.adsTime)
 
@@ -233,6 +236,7 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     }
 
     private fun onVpnNotRunning() {
+        Timber.d("MainModel::onVpnNotRunning")
         isRunning.postValue(false)
         switchPosition.postValue(false)
         message.postValue(application.getString(R.string.stopped))
@@ -240,6 +244,7 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     }
 
     private fun onVpnStarted(serviceState: ServiceState) {
+        Timber.d("MainModel::onVpnStarted")
         startTimer(serviceState.adsTime)
 
         config.postValue(serviceState.config)
@@ -251,7 +256,9 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     }
 
     private fun onVpnStopped() {
+        Timber.d("MainModel::onVpnStopped")
         stopTimer()
+
         isRunning.postValue(false)
         switchPosition.postValue(false)
         message.postValue(application.getString(R.string.stopped))
@@ -260,6 +267,7 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     }
 
     private fun onVpnFailed() {
+        Timber.d("MainModel::onVpnFailed")
         isRunning.postValue(false)
         switchPosition.postValue(false)
         message.postValue(null)

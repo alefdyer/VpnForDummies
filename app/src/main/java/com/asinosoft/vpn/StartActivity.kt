@@ -74,6 +74,7 @@ class StartActivity : AppCompatActivity(), RewardedAdLoadListener, RewardedAdEve
         Timber.d("StartActivity::startVpn")
         startActivity(
             Intent(this, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
                 .putConfig(config)
         )
     }
