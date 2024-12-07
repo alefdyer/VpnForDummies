@@ -57,6 +57,7 @@ class StartActivity : AppCompatActivity(), RewardedAdLoadListener, RewardedAdEve
         ad = null
         adLoader?.setAdLoadListener(null)
         adLoader = null
+        System.gc()
     }
 
     override fun onAdLoaded(rewarded: RewardedAd) {

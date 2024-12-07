@@ -30,7 +30,9 @@ class MainActivity : ComponentActivity() {
     private val requestPermission =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (RESULT_OK == it.resultCode) {
-                model.autoStart()
+                model.config.value?.let {
+                    onStartVpn(it)
+                }
             }
         }
 

@@ -39,6 +39,8 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     private val adsTimer = Timer()
     private var adsTimerTask: TimerTask? = null
 
+    private var autoRestart = false
+
     val config = MutableLiveData<Config>(null)
     val isRunning = MutableLiveData(false)
     val switchPosition = MutableLiveData(false)
@@ -51,7 +53,7 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
         Firebase.remoteConfig.fetchAndActivate().addOnCompleteListener {
             val url = Firebase.remoteConfig.getString(AppConfig.PREF_SERVITOR_URL)
             servitor = ServitorApiFactory().connect(url)
-            viewModelScope.launch(Dispatchers.IO) { requestConfig(false) }
+            viewModelScope.launch(Dispatchers.IO) { requestConfig(true) }
         }.addOnFailureListener { e ->
             setError(application.getString(R.string.config_error, e))
         }
@@ -117,10 +119,15 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
 
     fun autoStart() {
         Timber.d("MainModel::autoStart")
-        viewModelScope.launch(Dispatchers.IO) { requestConfig(true) }
+        if (true == isRunning.value) {
+            autoRestart = true
+            stopVpn()
+        } else {
+            viewModelScope.launch(Dispatchers.IO) { requestConfig(true) }
+        }
     }
 
-    private suspend fun requestConfig(autoStart: Boolean) {
+    private suspend fun requestConfig(autoStartPremium: Boolean) {
         val deviceId = application.myDeviceId
         Timber.w("Device ID: $deviceId")
 
@@ -135,9 +142,10 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
             message.postValue(application.getString(R.string.ready_to_start))
             error.postValue(null)
 
-            if (autoStart && null !== servitorConfig.subscription) {
-                startVpn(servitorConfig)
+            if (autoStartPremium) {
+                servitorConfig.subscription?.run { startVpn(servitorConfig) }
             }
+
             break
         } catch (e: Exception) {
             Timber.e("VPN config error: ${e.message}")
@@ -220,8 +228,6 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
         adsTimerTask?.cancel()
         adsTimerTask = null
         timer.postValue(null)
-
-        viewModelScope.launch(Dispatchers.IO) { requestConfig(false) }
     }
 
     private fun onVpnRunning(serviceState: ServiceState) {
@@ -264,6 +270,11 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
         message.postValue(application.getString(R.string.stopped))
         error.postValue(null)
         Toast.makeText(application, R.string.stopped, Toast.LENGTH_SHORT).show()
+
+        if (autoRestart) {
+            autoRestart = false
+            viewModelScope.launch(Dispatchers.IO) { requestConfig(true) }
+        }
     }
 
     private fun onVpnFailed() {
