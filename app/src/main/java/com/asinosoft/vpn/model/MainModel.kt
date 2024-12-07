@@ -51,7 +51,7 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
         Firebase.remoteConfig.fetchAndActivate().addOnCompleteListener {
             val url = Firebase.remoteConfig.getString(AppConfig.PREF_SERVITOR_URL)
             servitor = ServitorApiFactory().connect(url)
-            retrieveConfig()
+            viewModelScope.launch(Dispatchers.IO) { requestConfig(false) }
         }.addOnFailureListener { e ->
             setError(application.getString(R.string.config_error, e))
         }
@@ -115,12 +115,12 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
         MessageUtil.sendMsg2Service(application, AppConfig.MSG_REGISTER_CLIENT)
     }
 
-    fun retrieveConfig() {
-        Timber.d("MainModel::retrieveConfig")
+    fun autoStart() {
+        Timber.d("MainModel::autoStart")
         viewModelScope.launch(Dispatchers.IO) { requestConfig(true) }
     }
 
-    private suspend fun requestConfig(autoStart: Boolean = false) {
+    private suspend fun requestConfig(autoStart: Boolean) {
         val deviceId = application.myDeviceId
         Timber.w("Device ID: $deviceId")
 
@@ -221,7 +221,7 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
         adsTimerTask = null
         timer.postValue(null)
 
-        viewModelScope.launch(Dispatchers.IO) { requestConfig() }
+        viewModelScope.launch(Dispatchers.IO) { requestConfig(false) }
     }
 
     private fun onVpnRunning(serviceState: ServiceState) {

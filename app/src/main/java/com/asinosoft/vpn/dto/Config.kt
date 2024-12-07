@@ -1,5 +1,7 @@
 package com.asinosoft.vpn.dto
 
+import android.app.Activity.MODE_PRIVATE
+import android.content.Context
 import android.content.Intent
 import com.google.gson.Gson
 
@@ -20,3 +22,17 @@ data class Config(
 fun Intent.putConfig(config: Config): Intent = putExtra("config", config.toJson())
 
 fun Intent.getConfig(): Config? = getStringExtra("config")?.let { Config.fromJson(it) }
+
+fun Context.getConfig(): Config? {
+    val preferences = getSharedPreferences("vpn", MODE_PRIVATE)
+    val config = preferences.getString("config", null)?.let {
+        Config.fromJson(it)
+    }
+    if (null !== config) {
+        preferences.edit().remove("config").apply()
+    }
+    return config
+}
+
+fun Context.putConfig(config: Config) =
+    getSharedPreferences("vpn", MODE_PRIVATE).edit().putString("config", config.toJson()).apply()

@@ -1,6 +1,5 @@
 package com.asinosoft.vpn
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
@@ -13,7 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.asinosoft.vpn.dto.Config
 import com.asinosoft.vpn.dto.getConfig
-import com.asinosoft.vpn.dto.putConfig
 import com.yandex.mobile.ads.common.AdError
 import com.yandex.mobile.ads.common.AdRequestConfiguration
 import com.yandex.mobile.ads.common.AdRequestError
@@ -26,14 +24,17 @@ import com.yandex.mobile.ads.rewarded.RewardedAdLoader
 import timber.log.Timber
 
 class StartActivity : AppCompatActivity(), RewardedAdLoadListener, RewardedAdEventListener {
+    private var adLoader: RewardedAdLoader? = null
+    private var ad: RewardedAd? = null
+
     private lateinit var config: Config
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Timber.i("StartActivity::onCreate ${intent.extras?.keySet()?.joinToString(", ")}")
+        Timber.i("StartActivity::onCreate")
         super.onCreate(savedInstanceState)
         config = intent?.getConfig() ?: return finish()
 
-        RewardedAdLoader(this).apply {
+        adLoader = RewardedAdLoader(this).apply {
             val adUnitId = getString(R.string.yandex_reward_unit_id)
             val adConfig = AdRequestConfiguration.Builder(adUnitId).build()
             setAdLoadListener(this@StartActivity)
@@ -49,8 +50,17 @@ class StartActivity : AppCompatActivity(), RewardedAdLoadListener, RewardedAdEve
         setContent { WaitingForTheAds() }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+
+        ad?.setAdEventListener(null)
+        ad = null
+        adLoader?.setAdLoadListener(null)
+        adLoader = null
+    }
+
     override fun onAdLoaded(rewarded: RewardedAd) {
-        rewarded.apply {
+        ad = rewarded.apply {
             setAdEventListener(this@StartActivity)
             show(this@StartActivity)
         }
@@ -64,7 +74,7 @@ class StartActivity : AppCompatActivity(), RewardedAdLoadListener, RewardedAdEve
 
     override fun onAdFailedToShow(adError: AdError) = startVpn()
 
-    override fun onAdDismissed() = startVpn()
+    override fun onAdDismissed() = stopVpn()
 
     override fun onAdClicked() {}
 
@@ -72,16 +82,17 @@ class StartActivity : AppCompatActivity(), RewardedAdLoadListener, RewardedAdEve
 
     private fun startVpn() {
         Timber.d("StartActivity::startVpn")
-        startActivity(
-            Intent(this, MainActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                .putConfig(config)
-        )
+        getSharedPreferences("vpn", MODE_PRIVATE)
+            .edit()
+            .putString("config", config.toJson())
+            .apply()
+        finishAndRemoveTask()
+
     }
 
     private fun stopVpn() {
         Timber.d("StartActivity::stopVpn")
-        finish()
+        finishAndRemoveTask()
     }
 }
 

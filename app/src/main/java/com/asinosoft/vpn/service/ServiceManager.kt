@@ -184,17 +184,13 @@ object ServiceManager {
 
         Timber.d("Connect to ${v2rayPoint.domainName}")
 
-        try {
+        while (!v2rayPoint.isRunning) try {
             v2rayPoint.runLoop(false)
         } catch (e: Exception) {
             Timber.w(e.toString())
         }
 
-        if (v2rayPoint.isRunning) {
-            showNotification()
-        } else {
-            cancelNotification()
-        }
+        showNotification()
     }
 
     fun stopV2rayPoint() {

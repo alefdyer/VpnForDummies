@@ -1,6 +1,5 @@
 package com.asinosoft.vpn
 
-import android.app.ComponentCaller
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.VpnService
@@ -24,28 +23,21 @@ class MainActivity : ComponentActivity() {
     private val subscribe =
         registerForActivityResult(SubscriptionResultContract()) {
             if (it) {
-                model.retrieveConfig()
+                model.autoStart()
             }
         }
 
     private val requestPermission =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (RESULT_OK == it.resultCode) {
-                it.data?.getConfig()?.let { config ->
-                    onStartVpn(config)
-                }
+                model.autoStart()
             }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Timber.i("MainActivity::onCreate ${intent.extras?.keySet()?.joinToString(", ")}")
+        Timber.i("MainActivity::onCreate")
         super.onCreate(savedInstanceState)
         model.startListenBroadcast()
-        model.isRunning.observe(this) { isRunning ->
-            if (isRunning) {
-                intent.removeExtra("config")
-            }
-        }
 
         setContent {
             VpnForDummiesTheme {
@@ -59,14 +51,10 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onResume() {
-        Timber.i("MainActivity::onResume ${intent.extras?.keySet()?.joinToString(", ")}")
+        Timber.i("MainActivity::onResume")
         super.onResume()
-        intent.getConfig()?.let { model.startVpn(it) }
-    }
 
-    override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
-        Timber.i("MainActivity::onNewIntent ${intent.extras?.keySet()?.joinToString(", ")}")
-        intent.getConfig()?.let { model.startVpn(it) }
+        getConfig()?.let { model.startVpn(it) }
     }
 
     private fun onStartVpn(config: Config) {
@@ -76,11 +64,15 @@ class MainActivity : ComponentActivity() {
             if (0L == config.breakForAdsInterval) {
                 model.startVpn(config)
             } else {
-                startActivity(Intent(this, StartActivity::class.java).putConfig(config))
+                startActivity(
+                    Intent(this, StartActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_HISTORY)
+                        .putConfig(config)
+                )
             }
         } else {
             try {
-                requestPermission.launch(intent.putConfig(config))
+                requestPermission.launch(intent)
             } catch (e: ActivityNotFoundException) {
                 model.stopped()
                 model.setError(getString(R.string.device_not_supported))

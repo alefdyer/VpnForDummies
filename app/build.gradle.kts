@@ -12,7 +12,7 @@ android {
         applicationId = "com.asinosoft.vpn"
         minSdk = 24
         targetSdk = 35
-        versionCode = 17
+        versionCode = 18
         versionName = "1.1"
         setProperty("archivesBaseName", "$applicationId@$versionName.$versionCode")
         vectorDrawables {
@@ -37,7 +37,11 @@ android {
         }
     }
     buildTypes {
+        debug {
+            isDebuggable = true
+        }
         release {
+            isDebuggable = false
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
