@@ -271,9 +271,9 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
         error.postValue(null)
         Toast.makeText(application, R.string.stopped, Toast.LENGTH_SHORT).show()
 
-        if (autoRestart) {
+        viewModelScope.launch(Dispatchers.IO) {
+            requestConfig(autoRestart)
             autoRestart = false
-            viewModelScope.launch(Dispatchers.IO) { requestConfig(true) }
         }
     }
 
