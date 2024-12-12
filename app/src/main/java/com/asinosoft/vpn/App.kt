@@ -2,7 +2,6 @@ package com.asinosoft.vpn
 
 import android.app.Application
 import android.content.pm.ApplicationInfo
-import com.yandex.mobile.ads.common.MobileAds
 import timber.log.Timber
 
 class App : Application() {
@@ -14,7 +13,5 @@ class App : Application() {
         if (isDebug) {
             Timber.plant(Timber.DebugTree())
         }
-
-        MobileAds.initialize(this) {}
     }
 }
