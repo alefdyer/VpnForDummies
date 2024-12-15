@@ -30,6 +30,7 @@ android {
                 isUniversalApk = true
             }
         }
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     sourceSets {
         getByName("main") {

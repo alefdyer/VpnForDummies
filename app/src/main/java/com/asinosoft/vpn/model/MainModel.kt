@@ -29,7 +29,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.util.Date
 import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.TimeUnit
@@ -200,27 +199,27 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
         adsTimerTask?.cancel()
         adsTimerTask = null
 
-        val days = TimeUnit.MILLISECONDS.toDays(till - Date().time).toInt()
-        if (days > 0) {
-            // Just show remained days count without timer
-            timer.postValue(application.resources.getQuantityString(R.plurals.days, days, days))
-        } else {
-            adsTimerTask = object : TimerTask() {
-                override fun run() {
-                    val seconds = TimeUnit.MILLISECONDS.toSeconds(till - System.currentTimeMillis())
-                        .coerceAtLeast(0)
+        adsTimerTask = object : TimerTask() {
+            override fun run() {
+                val seconds = TimeUnit.MILLISECONDS.toSeconds(till - System.currentTimeMillis())
 
-                    if (0L == seconds) {
-                        stopTimer()
-                    } else {
-                        val time = DateUtils.formatElapsedTime(seconds)
-                        timer.postValue(time)
-                    }
+                if (0L >= seconds) {
+                    return stopTimer()
                 }
-            }
 
-            adsTimer.schedule(adsTimerTask, 0L, TimeUnit.SECONDS.toMillis(1))
+                val days = TimeUnit.SECONDS.toDays(seconds).toInt()
+                val time =
+                    if (days > 100) {
+                        application.resources.getQuantityString(R.plurals.days, days, days)
+                    } else {
+                        DateUtils.formatElapsedTime(seconds)
+                    }
+
+                timer.postValue(time)
+            }
         }
+
+        adsTimer.schedule(adsTimerTask, 0L, TimeUnit.SECONDS.toMillis(1))
     }
 
     private fun stopTimer() {
