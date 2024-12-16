@@ -12,6 +12,7 @@ import android.net.NetworkRequest
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
+import android.os.Looper
 import android.os.ParcelFileDescriptor
 import android.os.StrictMode
 import androidx.annotation.RequiresApi
@@ -21,15 +22,15 @@ import com.asinosoft.vpn.dto.ERoutingMode
 import com.asinosoft.vpn.dto.ServiceState
 import com.asinosoft.vpn.dto.getConfig
 import com.asinosoft.vpn.util.MessageUtil
+import com.asinosoft.vpn.util.toUptimeMillis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 import java.lang.ref.SoftReference
+import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Timer
-import java.util.TimerTask
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 import android.net.VpnService as AndroidVpnService
@@ -47,15 +48,11 @@ class VpnService : AndroidVpnService(), ServiceControl {
 
     private var isRunning = false
     private lateinit var mInterface: ParcelFileDescriptor
-    private lateinit var process: Process
+    private var process: Process? = null
+    private var checker: Thread? = null
 
-    private var breakForAdsTimer: Timer? = null
-    private val breakForAds = object : TimerTask() {
-        override fun run() {
-            Timber.w("Break for Ads")
-            stopService()
-        }
-    }
+    private var handler = Handler(Looper.getMainLooper())
+    private var adsTime: Long = 0
 
     /**destroy
      * Unfortunately registerDefaultNetworkCallback is going to return our VPN interface: https://android.googlesource.com/platform/frameworks/base/+/dda156ab0c5d66ad82bdcf76cda07cbc0a9c8a2e
@@ -228,9 +225,9 @@ class VpnService : AndroidVpnService(), ServiceControl {
                 ProcessBuilder(cmd).redirectErrorStream(true).directory(applicationContext.filesDir)
                     .start()
 
-            thread {
+            checker = thread {
                 Timber.d("tun2socks check")
-                val result = process.waitFor()
+                val result = process?.waitFor()
                 Timber.d("tun2socks exited with $result")
 
                 if (isRunning) {
@@ -261,7 +258,7 @@ class VpnService : AndroidVpnService(), ServiceControl {
             var tries = 0
             while (true) try {
                 Thread.sleep(50L shl tries)
-                Timber.d("sendFd tries: $tries")
+                Timber.d("sendFd: ${++tries} try")
                 LocalSocket().use { localSocket ->
                     localSocket.connect(
                         LocalSocketAddress(
@@ -272,25 +269,31 @@ class VpnService : AndroidVpnService(), ServiceControl {
                     localSocket.setFileDescriptorsForSend(arrayOf(fd))
                     localSocket.outputStream.write(42)
                 }
+                Timber.d("sendFd: OK")
                 break
             } catch (e: Exception) {
                 if (tries > 5) {
                     MessageUtil.sendMsg2UI(
                         this@VpnService,
                         AppConfig.MSG_ERROR_MESSAGE,
-                        "Failed to sendFd: ${e.message}"
+                        "sendFd failed: ${e.message}"
                     )
                 }
-                tries += 1
             }
         }
     }
 
     private fun scheduleBreakForAds() {
-        val adsTime: Long = config.subscription?.endAt?.time?.let { it - Date().time }
-            ?: TimeUnit.MINUTES.toMillis(config.breakForAdsInterval)
+        adsTime =
+            config.subscription?.endAt?.time
+                ?: System.currentTimeMillis()
+                    .plus(TimeUnit.MINUTES.toMillis(config.breakForAdsInterval))
 
-        breakForAdsTimer = Timer().apply { schedule(breakForAds, adsTime) }
+        val time = SimpleDateFormat.getDateTimeInstance().format(Date(adsTime))
+        Timber.d("Schedule stop at $adsTime | $time")
+
+
+        handler.postAtTime(this::stopService, adsTime.toUptimeMillis())
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -311,21 +314,20 @@ class VpnService : AndroidVpnService(), ServiceControl {
 
         try {
             Timber.d("tun2socks destroy")
-            process.destroy()
+            process?.destroy()
+            process = null
+
+            checker?.join()
+            checker = null
         } catch (e: Exception) {
             Timber.d(e.toString())
         }
 
         ServiceManager.stopV2rayPoint()
 
-        breakForAdsTimer?.cancel()
+        handler.removeCallbacks(this::stopService)
 
         if (isForced) {
-            //stopSelf has to be called ahead of mInterface.close(). otherwise v2ray core cannot be stooped
-            //It's strage but true.
-            //This can be verified by putting stopself() behind and call stopLoop and startLoop
-            //in a row for several times. You will find that later created v2ray core report port in use
-            //which means the first v2ray core somehow failed to stop and release the port.
             stopSelf()
 
             try {
@@ -341,10 +343,12 @@ class VpnService : AndroidVpnService(), ServiceControl {
     }
 
     override fun startService() {
+        Timber.i("Start service")
         setup()
     }
 
     override fun stopService() {
+        Timber.i("Stop service")
         stopV2Ray(true)
     }
 
@@ -352,6 +356,5 @@ class VpnService : AndroidVpnService(), ServiceControl {
         return protect(socket)
     }
 
-    override fun getState(): ServiceState =
-        ServiceState(config, breakForAds.scheduledExecutionTime())
+    override fun getState(): ServiceState = ServiceState(config, adsTime)
 }

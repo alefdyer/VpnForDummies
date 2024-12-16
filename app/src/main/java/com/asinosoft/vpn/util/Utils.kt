@@ -1,6 +1,7 @@
 package com.asinosoft.vpn.util
 
 import android.content.Context
+import android.os.SystemClock
 import android.provider.Settings
 import android.util.Base64
 import timber.log.Timber
@@ -104,3 +105,8 @@ val Context.myDeviceId: String
         }
         return deviceId
     }
+
+/**
+ * Convert system time into milliseconds, accepted by Handler::postAtTime
+ */
+fun Long.toUptimeMillis(): Long = SystemClock.uptimeMillis() + (this - System.currentTimeMillis())
