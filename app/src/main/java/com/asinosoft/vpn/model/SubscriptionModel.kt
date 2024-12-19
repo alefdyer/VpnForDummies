@@ -1,5 +1,6 @@
 package com.asinosoft.vpn.model
 
+import android.app.Activity.MODE_PRIVATE
 import android.app.Application
 import android.graphics.Bitmap
 import android.os.Build
@@ -39,7 +40,8 @@ sealed class SubscriptionUiState {
     ) : SubscriptionUiState()
 
     data class EnterEmail(
-        val order: Order
+        val order: Order,
+        val email: String?,
     ) : SubscriptionUiState()
 
     data class WaitForQrCode(
@@ -127,7 +129,7 @@ class SubscriptionModel(application: Application) : AndroidViewModel(application
                     )
                 )
 
-                _state.value = SubscriptionUiState.EnterEmail(order)
+                _state.value = SubscriptionUiState.EnterEmail(order, getDefaultEmail())
                 break
             } catch (ex: Exception) {
                 Timber.e(ex)
@@ -142,6 +144,8 @@ class SubscriptionModel(application: Application) : AndroidViewModel(application
     }
 
     private suspend fun innerCreatePayment(order: Order, email: String) {
+        putDefaultEmail(email)
+
         var tries = 0
         while (true) {
             try {
@@ -205,4 +209,14 @@ class SubscriptionModel(application: Application) : AndroidViewModel(application
 
         return bitmap.asImageBitmap()
     }
+
+    private fun getDefaultEmail(): String? = app
+        .getSharedPreferences("settings", MODE_PRIVATE)
+        .getString("email", null)
+
+    private fun putDefaultEmail(email: String) = app
+        .getSharedPreferences("settings", MODE_PRIVATE)
+        .edit()
+        .putString("email", email)
+        .apply()
 }

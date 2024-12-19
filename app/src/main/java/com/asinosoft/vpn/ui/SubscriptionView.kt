@@ -61,7 +61,7 @@ fun SubscriptionView(
     when (state) {
         is SubscriptionUiState.SelectSubscription -> SubscriptionMenu(onCreateOrder)
         is SubscriptionUiState.WaitForOrder -> WaitForOrder(state.order)
-        is SubscriptionUiState.EnterEmail -> EnterEmail(state.order, onCreatePayment)
+        is SubscriptionUiState.EnterEmail -> EnterEmail(state.order, state.email, onCreatePayment)
         is SubscriptionUiState.WaitForQrCode -> WaitForOrder(state.order)
         is SubscriptionUiState.WaitForPayment -> WaitForPayment(
             state.order, state.payment, state.qrcode
@@ -93,6 +93,7 @@ fun WaitForOrder(
 @Composable
 fun EnterEmail(
     @PreviewParameter(PreviewOrderProvider::class) order: Order,
+    defaultEmail: String? = null,
     onEmailEntered: (order: Order, email: String) -> Unit = { _, _ -> },
 ) {
     Column(
@@ -101,7 +102,7 @@ fun EnterEmail(
             .background(MaterialTheme.colorScheme.background),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        var email by rememberSaveable { mutableStateOf("") }
+        var email by rememberSaveable { mutableStateOf(defaultEmail ?: "") }
         val send = { onEmailEntered(order, email) }
 
         OrderInfo(order)
