@@ -12,7 +12,7 @@ android {
         applicationId = "com.asinosoft.vpn"
         minSdk = 24
         targetSdk = 35
-        versionCode = 21
+        versionCode = 22
         versionName = "1.1"
         setProperty("archivesBaseName", "$applicationId@$versionName.$versionCode")
         vectorDrawables {

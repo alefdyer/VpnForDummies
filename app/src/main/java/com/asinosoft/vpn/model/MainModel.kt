@@ -47,7 +47,7 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     val timer = MutableLiveData<String?>(null)
 
     init {
-        Firebase.remoteConfig.fetchAndActivate().addOnCompleteListener {
+        Firebase.remoteConfig.fetchAndActivate().addOnSuccessListener {
             val url = Firebase.remoteConfig.getString(AppConfig.PREF_SERVITOR_URL)
             servitor = ServitorApiFactory().connect(url)
             viewModelScope.launch(Dispatchers.IO) { requestConfig(true) }
