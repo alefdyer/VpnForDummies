@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.text.format.DateUtils
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
@@ -29,14 +30,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.util.Timer
-import java.util.TimerTask
 import java.util.concurrent.TimeUnit
 
 class MainModel(private val application: Application) : AndroidViewModel(application) {
     private var servitor: ServitorApi? = null
-    private val adsTimer = Timer()
-    private var adsTimerTask: TimerTask? = null
+    private var countdown: CountDownTimer? = null
 
     private var autoRestart = false
 
@@ -196,36 +194,32 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
     }
 
     private fun startTimer(till: Long) {
-        adsTimerTask?.cancel()
-        adsTimerTask = null
+        val countdownMillis = till - System.currentTimeMillis()
+        val everySecond = TimeUnit.SECONDS.toMillis(1)
+        countdown?.cancel()
+        countdown = object : CountDownTimer(countdownMillis, everySecond) {
+            override fun onTick(millisUntilFinished: Long) {
+                val days = TimeUnit.MILLISECONDS.toDays(millisUntilFinished).toInt()
 
-        adsTimerTask = object : TimerTask() {
-            override fun run() {
-                val seconds = TimeUnit.MILLISECONDS.toSeconds(till - System.currentTimeMillis())
-
-                if (0L >= seconds) {
-                    return stopTimer()
-                }
-
-                val days = TimeUnit.SECONDS.toDays(seconds).toInt()
                 val time =
-                    if (days > 100) {
+                    if (days > 0) {
                         application.resources.getQuantityString(R.plurals.days, days, days)
                     } else {
+                        val seconds = TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished)
                         DateUtils.formatElapsedTime(seconds)
                     }
 
                 timer.postValue(time)
             }
-        }
 
-        adsTimer.schedule(adsTimerTask, 0L, TimeUnit.SECONDS.toMillis(1))
+            override fun onFinish() = stopTimer()
+        }.apply { start() }
     }
 
     private fun stopTimer() {
         Timber.d("MainModel::stopTimer")
-        adsTimerTask?.cancel()
-        adsTimerTask = null
+        countdown?.cancel()
+        countdown = null
         timer.postValue(null)
     }
 
