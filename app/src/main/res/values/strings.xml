@@ -48,4 +48,10 @@
     <string name="sum">%.2f %s</string>
     <string name="support_telegram">Support</string>
     <string name="server">Server: %s</string>
+    <string name="restore_subscription">Restore subscription</string>
+    <string name="restore">Restore</string>
+    <string name="restore_subscription_prompt1">To restore subscription after reinstall, enter Email address used to purchase it</string>
+    <string name="restore_subscription_prompt2">We will send you a message with a link to connect this device to subscription</string>
+    <string name="sending">Sending</string>
+    <string name="sent">Sent</string>
 </resources>

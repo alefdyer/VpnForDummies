@@ -47,6 +47,7 @@ class MainActivity : ComponentActivity() {
                     onStartVpn = this::onStartVpn,
                     onStopVpn = model::stopVpn,
                     onPremiumClicked = { subscribe.launch(null) },
+                    onRestoreSubscription = this::restoreSubscription
                 )
             }
         }
@@ -83,5 +84,9 @@ class MainActivity : ComponentActivity() {
                 model.setError(e.message)
             }
         }
+    }
+
+    private fun restoreSubscription() {
+        startActivity(Intent(this, RestoreSubscriptionActivity::class.java))
     }
 }

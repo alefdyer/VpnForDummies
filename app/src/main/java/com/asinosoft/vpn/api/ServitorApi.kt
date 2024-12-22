@@ -30,6 +30,11 @@ interface ServitorApi {
     suspend fun checkPayment(
         @Path("paymentId") paymentId: String,
     ): Payment
+
+    @POST("restore")
+    suspend fun restoreSubscription(
+        @Body data: RestoreSubscriptionRequest
+    )
 }
 
 data class CreateOrderRequest(
@@ -41,4 +46,10 @@ data class CreateOrderRequest(
 
 data class CreatePaymentRequest(
     val email: String,
+)
+
+data class RestoreSubscriptionRequest(
+    val email: String,
+    val deviceId: String,
+    val deviceModel: String,
 )

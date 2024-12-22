@@ -48,4 +48,10 @@
     <string name="sum">%.2f %s</string>
     <string name="support_telegram">Поддержка</string>
     <string name="server">Сервер: %s</string>
+    <string name="restore_subscription">Восстановить подписку</string>
+    <string name="restore">Восстановить</string>
+    <string name="restore_subscription_prompt1">Чтобы восстановить подписку после переустановки программы, укажите Email, на который она была куплена</string>
+    <string name="restore_subscription_prompt2">Мы отправим Вам письмо со ссылкой на страницу подключения этого устройства к подписке</string>
+    <string name="sending">Отправка</string>
+    <string name="sent">Отправлено</string>
 </resources>

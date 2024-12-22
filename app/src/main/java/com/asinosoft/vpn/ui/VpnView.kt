@@ -34,6 +34,7 @@ fun VpnView(
     onStartVpn: (Config) -> Unit = {},
     onStopVpn: () -> Unit = {},
     onShowInfo: (Info) -> Unit = {},
+    onRestoreSubscription: () -> Unit = {},
     onPremiumClicked: () -> Unit = {},
 ) {
     val config by model.config.observeAsState(null)
@@ -60,7 +61,7 @@ fun VpnView(
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
-                actions = { EllipsisMenu(config, onShowInfo, onRateUs, onSupport) }
+                actions = { EllipsisMenu(config, onShowInfo, onRestoreSubscription, onRateUs, onSupport) }
             )
         }
     ) { paddingValues ->

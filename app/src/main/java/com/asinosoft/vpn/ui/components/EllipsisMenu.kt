@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.DropdownMenu
@@ -41,6 +42,7 @@ import java.util.Date
 fun EllipsisMenu(
     config: Config?,
     onShowInfo: (Info) -> Unit,
+    onRestoreSubscription: () -> Unit,
     onRateUs: () -> Unit,
     onSupport: () -> Unit,
 ) {
@@ -111,6 +113,19 @@ fun EllipsisMenu(
                 onClick = {
                     showMenu = false
                     onSupport()
+                }
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.restore_subscription)) },
+                trailingIcon = {
+                    Icon(
+                        Icons.Filled.MailOutline,
+                        "Restore subscription",
+                    )
+                },
+                onClick = {
+                    showMenu = false
+                    onRestoreSubscription()
                 }
             )
             HorizontalDivider()
