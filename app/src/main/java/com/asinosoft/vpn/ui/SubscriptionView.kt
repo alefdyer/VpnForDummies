@@ -5,7 +5,6 @@ import android.net.Uri
 import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +18,7 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,7 +32,6 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -103,7 +102,11 @@ fun EnterEmail(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         var email by rememberSaveable { mutableStateOf(defaultEmail ?: "") }
-        val send = { onEmailEntered(order, email) }
+        val send = {
+            if (Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                onEmailEntered(order, email)
+            }
+        }
 
         OrderInfo(order)
 
@@ -219,11 +222,9 @@ fun WaitForPayment(
             modifier = Modifier.padding(40.dp)
         )
 
-        Text(
-            stringResource(R.string.pay), modifier = Modifier.clickable(
-                onClick = openBrowser, role = Role.Button
-            )
-        )
+        OutlinedButton(onClick = openBrowser) {
+            Text(stringResource(R.string.pay))
+        }
     }
 
 }
