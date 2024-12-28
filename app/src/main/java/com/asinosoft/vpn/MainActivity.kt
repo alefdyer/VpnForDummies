@@ -60,7 +60,6 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun onStartVpn(config: Config) {
-        model.starting(config)
         val intent = VpnService.prepare(this)
         if (intent == null) {
             if (0L == config.breakForAdsInterval) {
@@ -76,10 +75,8 @@ class MainActivity : ComponentActivity() {
             try {
                 requestPermission.launch(intent)
             } catch (e: ActivityNotFoundException) {
-                model.stopped()
                 model.setError(getString(R.string.device_not_supported))
             } catch (e: Throwable) {
-                model.stopped()
                 model.setError(e.message)
             }
         }

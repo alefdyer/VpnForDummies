@@ -65,24 +65,14 @@ class MainModel(private val application: Application) : AndroidViewModel(applica
         error.postValue(message)
     }
 
-    fun starting(cfg: Config) {
-        config.postValue(cfg)
-        switchPosition.postValue(true)
-        message.postValue(application.getString(R.string.starting))
-        error.postValue(null)
-    }
-
-    fun stopped() {
-        switchPosition.postValue(false)
-        message.postValue(application.getString(R.string.stopped))
-        error.postValue(null)
-    }
-
     fun startVpn(config: Config) {
         Timber.i("Start VPN")
         Firebase.analytics.logEvent("vpn_start", Bundle.EMPTY)
 
-        starting(config)
+        this.config.postValue(config)
+        switchPosition.postValue(true)
+        message.postValue(application.getString(R.string.starting))
+        error.postValue(null)
         ServiceManager.startV2Ray(application, config)
     }
 
