@@ -3,7 +3,6 @@ package com.asinosoft.vpn.ui.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -25,7 +24,6 @@ fun WaitingForConfig(modifier: Modifier = Modifier) {
 
         Text(
             text = stringResource(R.string.wait_for_config),
-            color = MaterialTheme.colorScheme.onBackground,
             style = Typography.titleLarge
         )
 

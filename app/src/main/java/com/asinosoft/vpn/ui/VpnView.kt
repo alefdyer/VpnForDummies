@@ -5,11 +5,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -47,47 +46,46 @@ fun VpnView(
 
     val onSupport = { context.startActivity(Intent(Intent.ACTION_VIEW, AppConfig.SUPPORT)) }
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.app_name),
-                        style = Typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
-                actions = { EllipsisMenu(config, onShowInfo, onRateUs, onSupport) }
-            )
-        }
-    ) { paddingValues ->
-        if (null == config) {
-            WaitingForConfig(Modifier.padding(paddingValues))
-        } else config?.let {
-            Box(Modifier.padding(paddingValues)) {
-                when (it.breakForAdsInterval) {
-                    0L -> PremiumVpnView(
-                        config = it,
-                        switchPosition = switchPosition,
-                        timer = timer,
-                        message = message,
-                        error = error,
-                        onStartVpn = { onStartVpn(it) },
-                        onStopVpn = onStopVpn
-                    )
+    Surface {
+        Scaffold(
+            modifier = modifier.fillMaxSize(),
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = stringResource(R.string.app_name),
+                            style = Typography.titleLarge,
+                        )
+                    },
+                    actions = { EllipsisMenu(config, onShowInfo, onRateUs, onSupport) }
+                )
+            }
+        ) { paddingValues ->
+            if (null == config) {
+                WaitingForConfig(Modifier.padding(paddingValues))
+            } else config?.let {
+                Box(Modifier.padding(paddingValues)) {
+                    when (it.breakForAdsInterval) {
+                        0L -> PremiumVpnView(
+                            config = it,
+                            switchPosition = switchPosition,
+                            timer = timer,
+                            message = message,
+                            error = error,
+                            onStartVpn = { onStartVpn(it) },
+                            onStopVpn = onStopVpn
+                        )
 
-                    else -> FreeVpnView(
-                        switchPosition = switchPosition,
-                        timer = timer,
-                        message = message,
-                        error = error,
-                        onStartVpn = { onStartVpn(it) },
-                        onStopVpn = onStopVpn,
-                        onPremiumClicked = onPremiumClicked,
-                    )
+                        else -> FreeVpnView(
+                            switchPosition = switchPosition,
+                            timer = timer,
+                            message = message,
+                            error = error,
+                            onStartVpn = { onStartVpn(it) },
+                            onStopVpn = onStopVpn,
+                            onPremiumClicked = onPremiumClicked,
+                        )
+                    }
                 }
             }
         }

@@ -4,7 +4,6 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Patterns
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +18,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -76,15 +76,15 @@ fun SubscriptionView(
 fun WaitForOrder(
     @PreviewParameter(PreviewOrderProvider::class) order: Order
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        OrderInfo(order)
+    Surface {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            OrderInfo(order)
 
-        CircularProgressIndicator()
+            CircularProgressIndicator()
+        }
     }
 }
 
@@ -95,38 +95,38 @@ fun EnterEmail(
     defaultEmail: String? = null,
     onEmailEntered: (order: Order, email: String) -> Unit = { _, _ -> },
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        var email by rememberSaveable { mutableStateOf(defaultEmail ?: "") }
-        val send = {
-            if (Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                onEmailEntered(order, email)
-            }
-        }
-
-        OrderInfo(order)
-
-        Text(
-            stringResource(R.string.enter_email_prompt),
-            style = Typography.labelLarge,
-        )
-
-        EmailTextField(
-            email = email,
-            onValueChange = { email = it },
-            onSend = send,
-        )
-
-        Button(
-            onClick = send,
-            enabled = Patterns.EMAIL_ADDRESS.matcher(email).matches(),
-            modifier = Modifier.padding(16.dp),
+    Surface {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(stringResource(R.string.pay))
+            var email by rememberSaveable { mutableStateOf(defaultEmail ?: "") }
+            val send = {
+                if (Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                    onEmailEntered(order, email)
+                }
+            }
+
+            OrderInfo(order)
+
+            Text(
+                stringResource(R.string.enter_email_prompt),
+                style = Typography.labelLarge,
+            )
+
+            EmailTextField(
+                email = email,
+                onValueChange = { email = it },
+                onSend = send,
+            )
+
+            Button(
+                onClick = send,
+                enabled = Patterns.EMAIL_ADDRESS.matcher(email).matches(),
+                modifier = Modifier.padding(16.dp),
+            ) {
+                Text(stringResource(R.string.pay))
+            }
         }
     }
 }
@@ -144,26 +144,26 @@ fun SuccessView(
         onClose()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        OrderInfo(order)
+    Surface {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            OrderInfo(order)
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Image(
-                imageVector = Icons.Rounded.Check,
-                modifier = Modifier.size(24.dp),
-                contentDescription = "Success",
-                colorFilter = ColorFilter.tint(DarkGreen),
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    imageVector = Icons.Rounded.Check,
+                    modifier = Modifier.size(24.dp),
+                    contentDescription = "Success",
+                    colorFilter = ColorFilter.tint(DarkGreen),
+                )
 
-            Text(
-                text = stringResource(R.string.paid),
-                style = Typography.titleMedium,
-            )
+                Text(
+                    text = stringResource(R.string.paid),
+                    style = Typography.titleMedium,
+                )
+            }
         }
     }
 }
@@ -174,26 +174,26 @@ fun ErrorView(
     order: Order? = null,
     onClose: () -> Unit = {},
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        order?.let { OrderInfo(it) }
+    Surface {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            order?.let { OrderInfo(it) }
 
-        Text(
-            error,
-            modifier = Modifier.fillMaxWidth(),
-            style = Typography.headlineSmall,
-            color = MaterialTheme.colorScheme.error,
-            textAlign = TextAlign.Center
-        )
+            Text(
+                error,
+                modifier = Modifier.fillMaxWidth(),
+                style = Typography.headlineSmall,
+                color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Center
+            )
 
-        Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(24.dp))
 
-        Button(onClick = onClose) {
-            Text(stringResource(R.string.close))
+            Button(onClick = onClose) {
+                Text(stringResource(R.string.close))
+            }
         }
     }
 }
@@ -208,23 +208,22 @@ fun WaitForPayment(
     val openBrowser =
         { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(payment.confirmationUrl))) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        order?.let { OrderInfo(it) }
+    Surface {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            order?.let { OrderInfo(it) }
 
-        Image(
-            qrcode,
-            contentDescription = "Qr Code",
-            modifier = Modifier.padding(40.dp)
-        )
+            Image(
+                qrcode,
+                contentDescription = "Qr Code",
+                modifier = Modifier.padding(40.dp)
+            )
 
-        OutlinedButton(onClick = openBrowser) {
-            Text(stringResource(R.string.pay))
+            OutlinedButton(onClick = openBrowser) {
+                Text(stringResource(R.string.pay))
+            }
         }
     }
-
 }

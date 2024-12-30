@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -43,11 +43,11 @@ fun FreeVpnView(
             ) {
                 PremiumButton(onPremiumClicked)
 
-                message?.let { Text(text = it, color = MaterialTheme.colorScheme.onBackground) }
+                message?.let { Text(text = it) }
 
                 timer?.let { Countdown(it) }
 
-                error?.let { Text(text = it, color = MaterialTheme.colorScheme.onBackground) }
+                error?.let { Text(text = it) }
 
                 Switcher(switchPosition, onStartVpn, onStopVpn)
             }
@@ -80,16 +80,18 @@ fun VpnLayout(
     advertisement: @Composable (modifier: Modifier) -> Unit,
     content: @Composable (modifier: Modifier) -> Unit,
 ) {
-    val screen = LocalConfiguration.current
-    if (screen.orientation == Configuration.ORIENTATION_PORTRAIT) {
-        Column(modifier, Arrangement.SpaceAround) {
-            content(Modifier.weight(1f))
-            advertisement(Modifier.weight(1f))
-        }
-    } else {
-        Row(modifier, Arrangement.SpaceBetween) {
-            advertisement(Modifier.weight(1f))
-            content(Modifier.weight(2f))
+    Surface {
+        val screen = LocalConfiguration.current
+        if (screen.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            Column(modifier, Arrangement.SpaceAround) {
+                content(Modifier.weight(1f))
+                advertisement(Modifier.weight(1f))
+            }
+        } else {
+            Row(modifier, Arrangement.SpaceBetween) {
+                advertisement(Modifier.weight(1f))
+                content(Modifier.weight(2f))
+            }
         }
     }
 }
